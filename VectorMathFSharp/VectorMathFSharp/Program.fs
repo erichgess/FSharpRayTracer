@@ -151,18 +151,18 @@ type Matrix(xs: float [,]) =
 
   static member init m n f = Matrix(Array2D.init m n f)
 
-  static member (~-) (a: Matrix) =
-    Matrix.init a.Rows a.Columns (fun i j -> -a.[i, j])
-
-  static member (+) (a: Matrix, b: Matrix) =
-    Matrix.init a.Rows a.Columns (fun i j -> a.[i, j] + b.[i, j])
-
-  static member (-) (a: Matrix, b: Matrix) =
-    Matrix.init a.Rows a.Columns (fun i j -> a.[i, j] - b.[i, j])
-
-  static member (*) (a: Matrix, b: Matrix) =
-    Matrix.init a.Rows b.Columns (fun i j ->
-      sum 0 (b.Rows-1) (fun k -> a.[i, k] * b.[k, j]))
+//  static member (~-) (a: Matrix) =
+//    Matrix.init a.Rows a.Columns (fun i j -> -a.[i, j])
+//
+//  static member (+) (a: Matrix, b: Matrix) =
+//    Matrix.init a.Rows a.Columns (fun i j -> a.[i, j] + b.[i, j])
+//
+//  static member (-) (a: Matrix, b: Matrix) =
+//    Matrix.init a.Rows a.Columns (fun i j -> a.[i, j] - b.[i, j])
+//
+//  static member (*) (a: Matrix, b: Matrix) =
+//    Matrix.init a.Rows b.Columns (fun i j ->
+//      sum 0 (b.Rows-1) (fun k -> a.[i, k] * b.[k, j]))
 //
 //[<EntryPoint>]
 //let main argv = 
