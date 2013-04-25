@@ -138,6 +138,17 @@ type Vector3(x: float, y: float, z: float) =
     static member (-) ( u: Point, v: Point ) =
         Vector3.init ( fun i -> u.[i] - v.[i] )
 
+type Vector4( x: float, y: float, z: float, w: float ) =
+    let x = x
+    let y = y
+    let z = z
+    let w = w
+
+    member this.Dim = 4
+
+    static member Init (v3: Vector3) =
+        Vector4( v3.[0], v3.[1], v3.[2], 1 )
+
 type Matrix(xs: float [,]) =
   let xs = Array2D.copy xs
 
@@ -152,7 +163,7 @@ type Matrix(xs: float [,]) =
   static member init m n f = Matrix(Array2D.init m n f)
 
 //  static member (~-) (a: Matrix) =
-//    Matrix.init a.Rows a.Columns (fun i j -> -a.[i, j])
+//    Matrix.init a.Rows a.Columns (fun i j -> (-a.[i, j]))
 //
 //  static member (+) (a: Matrix, b: Matrix) =
 //    Matrix.init a.Rows a.Columns (fun i j -> a.[i, j] + b.[i, j])
