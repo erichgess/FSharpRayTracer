@@ -16,18 +16,21 @@
         static member init f = Matrix4(Array2D.init 4 4 f)
 
         static member RotateX (angle: float) =
+            let angle = angle / 180.0 * Math.PI
             Matrix4( array2D[   [1.0; 0.0;            0.0;              0.0];
                                 [0.0; Math.Cos angle; -Math.Sin angle;  0.0];
                                 [0.0; Math.Sin angle; Math.Cos angle;   0.0];
                                 [0.0; 0.0;            0.0;              1.0]] )
 
         static member RotateY (angle: float) =
+            let angle = angle / 180.0 * Math.PI
             Matrix4( array2D[   [Math.Cos angle;  0.0; Math.Sin angle;  0.0];
                                 [0.0;             1.0; 0.0;             0.0];
                                 [-Math.Sin angle; 0.0; Math.Cos angle;  0.0];
                                 [0.0; 0.0;            0.0;              1.0]] )
 
         static member RotateZ (angle: float) =
+            let angle = angle / 180.0 * Math.PI
             Matrix4( array2D[   [Math.Cos angle; -Math.Sin angle; 0.0;  0.0];
                                 [Math.Sin angle; Math.Cos angle;  0.0;  0.0];
                                 [0.0;            0.0;             1.0;  0.0];
