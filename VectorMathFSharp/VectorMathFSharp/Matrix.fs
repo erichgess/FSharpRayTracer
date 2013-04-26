@@ -45,3 +45,12 @@
         static member (*) (m: Matrix4, n: Matrix4 ) =
             Matrix4.init ( fun i j -> 
             sum 0 3 (fun k -> m.[i, k] * n.[k, j]))
+
+
+    [<EntryPoint>]
+    let main argv = 
+        let rx90 = Matrix4.RotateX 90.0
+        let ry45 = Matrix4.RotateY 45.0
+
+        let combo = rx90 * ry45
+        0 // return an integer exit code

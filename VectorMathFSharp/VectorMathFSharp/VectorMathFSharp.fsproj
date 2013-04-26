@@ -45,7 +45,6 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.fs" />
     <None Include="App.config" />
     <Compile Include="Vector.fs" />
     <Compile Include="Matrix.fs" />
