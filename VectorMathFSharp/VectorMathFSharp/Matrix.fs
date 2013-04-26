@@ -2,10 +2,18 @@
     open Vector
     open System
 
+    let sum i0 i1 f =
+        let mutable t = 0.0
+        for i in i0..i1 do
+            t <- t + f i
+        t
+
     type Matrix4 (xs: float [,]) =
         let xs = xs
 
         member this.Item(i, j) = xs.[i, j]
+
+        static member init f = Matrix4(Array2D.init 4 4 f)
 
         static member RotateX (angle: float) =
             Matrix4( array2D[   [1.0; 0.0;            0.0;              0.0];
@@ -33,3 +41,7 @@
 
         static member (*) (m: Matrix4, v: Vector4 ) =
             Vector4.init (fun i -> v.X*m.[i,0] + v.Y*m.[i,1] + v.Z*m.[i,2] + v.W*m.[i,3])
+
+        static member (*) (m: Matrix4, n: Matrix4 ) =
+            Matrix4.init ( fun i j -> 
+            sum 0 3 (fun k -> m.[i, k] * n.[k, j]))
