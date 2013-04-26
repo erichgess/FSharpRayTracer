@@ -86,7 +86,7 @@ type Vector3(x: float, y: float, z: float) =
         | 0 -> Some(x)
         | 1 -> Some(y)
         | 2 -> Some(z)
-        | _ -> failwith( "Index Out of Bounds on Vector" )
+        | _ -> None
 
     member this.LengthSquared () =
         sum 0 this.Dim ( fun i -> this.[i] * this.[i])
@@ -111,6 +111,9 @@ type Vector3(x: float, y: float, z: float) =
             None
         else
             Some( Point( cx.Value, cy.Value, cz.Value ) )
+
+    member this.HasNones () =
+        this.[0].IsNone || this.[1].IsNone || this.[2].IsNone
 
     override this.ToString() =
         sprintf "(%f, %f, %f)" x y z
@@ -147,7 +150,10 @@ type Vector4( x: float, y: float, z: float, w: float ) =
     member this.Dim = 4
 
     static member Init (v3: Vector3) =
-        Vector4( v3.[0], v3.[1], v3.[2], 1 )
+        if v3.HasNones () then
+            None
+        else
+        Some( Vector4( v3.[0].Value, v3.[1].Value, v3.[2].Value, 1.0 ) )
 
 type Matrix(xs: float [,]) =
   let xs = Array2D.copy xs
