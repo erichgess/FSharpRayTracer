@@ -45,6 +45,15 @@
         member this.Normalize () =
             this / this.Length()
 
+        // This operation does not use the 4th column/row of the matrix, this is because
+        // that portion of the matrix is used for translations and Vectors should not be
+        // translated, because for our application they represent direction.
+        static member (*) (m: Matrix, v: Vector3 ) =
+            Vector3.init (fun i -> v.X*m.[i,0] + v.Y*m.[i,1] + v.Z*m.[i,2])
+
+        static member (*) ( v: Vector3, m: Matrix ) =
+            Vector3.init (fun i -> v.X*m.[0,i] + v.Y*m.[1,i] + v.Z*m.[2,i])
+
     type Vector4 ( x: float, y: float, z: float, w: float ) =
         member this.X = x
         member this.Y = y

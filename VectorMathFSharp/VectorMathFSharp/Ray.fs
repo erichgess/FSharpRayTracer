@@ -4,9 +4,9 @@
     open Matrix
     open System
 
-    type Ray( p: Point4, v: Vector4 ) =
+    type Ray( p: Point3, v: Vector3 ) =
         let origin = p
-        let direction = Vector4( v.X, v.Y, v.Z, 0.0 )       // Using Vector4 means that the existing Matrix math will work 
+        let direction = Vector3( v.X, v.Y, v.Z )       // Using Vector4 means that the existing Matrix math will work 
                                                             // and setting W to 0.0 means that translations will not affect the vector.
                                                             // Direction should not be changed by translations.  Scaling won't matter.
 
