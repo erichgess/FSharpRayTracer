@@ -1,4 +1,5 @@
 ﻿module Vector
+    open Point
     open System
 
     type Vector3 ( x: float, y: float, z: float ) =
@@ -71,6 +72,9 @@
         static member (-) ( u: Vector4, v: Vector4 ) =
             Vector4( u.X - v.X, u.Y - v.Y, u.Z - v.Z, u.W - v.W )
 
+        static member (-) ( p: Point4, q: Point4 ) =
+            Vector4( p.X - q.X, p.Y - q.Y, p.Z - q.Z, p.W - q.W )
+
         member this.LengthSquared () =
             x*x + y*y + z*z + w*w
 
@@ -79,3 +83,6 @@
 
         member this.Normalize () =
             this / this.Length()
+
+        member this.Vector3 () =
+            Vector3( this.X, this.Y, this.Z )
