@@ -1,4 +1,4 @@
-﻿namespace Vector
+﻿module Vector
     open System
 
     type Vector3 ( x: float, y: float, z: float ) =

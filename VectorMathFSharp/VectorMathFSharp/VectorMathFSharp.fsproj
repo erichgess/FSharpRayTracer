@@ -47,6 +47,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <Compile Include="Vector.fs" />
+    <Compile Include="Point.fs" />
     <Compile Include="Matrix.fs" />
   </ItemGroup>
   <PropertyGroup>

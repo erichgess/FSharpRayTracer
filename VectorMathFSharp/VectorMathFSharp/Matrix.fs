@@ -1,5 +1,7 @@
 ﻿module Matrix
     open Vector
+    open Point
+    open Ray
     open System
 
     let sum i0 i1 f =
@@ -12,6 +14,9 @@
         let xs = xs
 
         member this.Item(i, j) = xs.[i, j]
+
+        member this.Transpose () =
+            Matrix4.init ( fun i j -> this.[ j, i ])
 
         static member init f = Matrix4(Array2D.init 4 4 f)
 
@@ -45,15 +50,22 @@
         static member (*) (m: Matrix4, v: Vector4 ) =
             Vector4.init (fun i -> v.X*m.[i,0] + v.Y*m.[i,1] + v.Z*m.[i,2] + v.W*m.[i,3])
 
+        static member (*) (m: Matrix4, p: Point4 ) =
+            Point4.init (fun i -> p.X*m.[i,0] + p.Y*m.[i,1] + p.Z*m.[i,2] + p.W*m.[i,3])
+
+        static member (*) (m: Matrix4, r: Ray ) =
+            Ray( m * r.Origin, m * r.Direction )
+            
         static member (*) (m: Matrix4, n: Matrix4 ) =
             Matrix4.init ( fun i j -> 
             sum 0 3 (fun k -> m.[i, k] * n.[k, j]))
 
+        member this.Print () =
+            sprintf "%A" xs
+
 
     [<EntryPoint>]
     let main argv = 
-        let rx90 = Matrix4.RotateX 90.0
-        let ry45 = Matrix4.RotateY 45.0
-
-        let combo = rx90 * ry45
+        let testM = Matrix4.init ( fun i j -> float(i*10 + j) )
+        testM.Print ()
         0 // return an integer exit code
