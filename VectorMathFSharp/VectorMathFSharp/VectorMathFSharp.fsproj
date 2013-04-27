@@ -45,6 +45,7 @@
     <Compile Include="Point.fs" />
     <Compile Include="Vector.fs" />
     <Compile Include="Ray.fs" />
+    <Compile Include="Sphere.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>

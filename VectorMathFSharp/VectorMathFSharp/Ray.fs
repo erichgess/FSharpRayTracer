@@ -6,9 +6,9 @@
 
     type Ray( p: Point3, v: Vector3 ) =
         let origin = p
-        let direction = Vector3( v.X, v.Y, v.Z )       // Using Vector4 means that the existing Matrix math will work 
-                                                            // and setting W to 0.0 means that translations will not affect the vector.
-                                                            // Direction should not be changed by translations.  Scaling won't matter.
+        let direction = Vector3( v.X, v.Y, v.Z )        // Using Vector4 means that the existing Matrix math will work 
+                                                        // and setting W to 0.0 means that translations will not affect the vector.
+                                                        // Direction should not be changed by translations.  Scaling won't matter.
 
         member this.Origin =
             origin
@@ -18,3 +18,6 @@
 
         static member (*) (m: Matrix, r: Ray ) =
             Ray( m * r.Origin, m * r.Direction )
+
+        static member (*) (r: Ray, m: Matrix ) =
+            Ray( r.Origin * m, r.Direction * m )
