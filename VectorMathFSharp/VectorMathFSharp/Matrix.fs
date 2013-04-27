@@ -10,6 +10,60 @@
             t <- t + f i
         t
 
+    type Matrix ( xs: float [,] ) =
+        let xs = xs
+
+        member this.Item( i, j ) = xs.[i, j]
+
+        member this.Dim = xs.GetLength 0
+
+        static member init n f =
+            Matrix( Array2D.init n n f )
+
+        static member (*) ( a: float, m: Matrix ) =
+            Matrix.init m.Dim ( fun i j -> a * m.[i, j] )
+
+        static member (/) ( m: Matrix, a: float ) =
+            Matrix.init m.Dim ( fun i j -> m.[i, j] / a )
+
+        static member Scale (x: float, y: float, z: float ) =
+            Matrix( array2D [  [  x; 0.0; 0.0; 0.0];
+                                [0.0;   y; 0.0; 0.0];
+                                [0.0; 0.0; z;   0.0];
+                                [0.0; 0.0; 0.0; 1.0] ] )
+
+        member this.SubtractRowAndColumn (row: int, column: int ) =
+            Matrix.init (this.Dim - 1) (
+                fun i j -> 
+                    let mutable sourceRow = i
+                    if i >= row then
+                        sourceRow <- i + 1
+
+                    let mutable sourceColumn = j
+                    if j >= column then
+                        sourceColumn <- j+1
+                        
+                    this.[sourceRow, sourceColumn])
+
+        member this.Determinate () =
+            if this.Dim = 1 then
+                this.[0,0]
+            else
+                let mutable determinate = 0.0
+                let mutable sign = 1.0
+                for column = 0 to this.Dim-1 do
+                    determinate <- determinate + sign * this.[ 0, column ] * this.SubtractRowAndColumn(0, column).Determinate()
+                    sign <- -1.0 * sign
+                determinate
+
+        member this.Invert () =
+            let determinate = this.Determinate ()
+            let m = Matrix.init this.Dim ( fun i j -> this.SubtractRowAndColumn(i, j).Determinate() )
+            m / determinate
+
+        member this.Print () =
+            sprintf "%A" xs
+
     type Matrix4 (xs: float [,]) =
         let xs = xs
 
