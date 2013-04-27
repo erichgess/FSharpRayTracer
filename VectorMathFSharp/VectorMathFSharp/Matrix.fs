@@ -35,13 +35,8 @@
         member this.SubtractRowAndColumn (row: int, column: int ) =
             Matrix.init (this.Dim - 1) (
                 fun i j -> 
-                    let mutable sourceRow = i
-                    if i >= row then
-                        sourceRow <- i + 1
-
-                    let mutable sourceColumn = j
-                    if j >= column then
-                        sourceColumn <- j+1
+                    let sourceRow = if i < row then i else i + 1
+                    let sourceColumn = if j < column then j else j + 1
                         
                     this.[sourceRow, sourceColumn])
 
