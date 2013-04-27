@@ -1,5 +1,6 @@
 ﻿module Vector
     open Point
+    open Matrix
     open System
 
     type Vector3 ( x: float, y: float, z: float ) =
@@ -86,3 +87,9 @@
 
         member this.Vector3 () =
             Vector3( this.X, this.Y, this.Z )
+
+        static member (*) (m: Matrix, v: Vector4 ) =
+            Vector4.init (fun i -> v.X*m.[i,0] + v.Y*m.[i,1] + v.Z*m.[i,2] + v.W*m.[i,3])
+
+        static member (*) ( v: Vector4, m: Matrix ) =
+            Vector4.init (fun i -> v.X*m.[0,i] + v.Y*m.[1,i] + v.Z*m.[2,i] + v.W*m.[3,i])

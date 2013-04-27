@@ -1,6 +1,7 @@
 ﻿module Ray
     open Vector
     open Point
+    open Matrix
     open System
 
     type Ray( p: Point4, v: Vector4 ) =
@@ -14,3 +15,6 @@
 
         member this.Direction =
             direction
+
+        static member (*) (m: Matrix, r: Ray ) =
+            Ray( m * r.Origin, m * r.Direction )

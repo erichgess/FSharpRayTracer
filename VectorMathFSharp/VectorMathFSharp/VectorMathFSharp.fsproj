@@ -41,10 +41,11 @@
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets')" />
   <ItemGroup>
     <None Include="App.config" />
+    <Compile Include="Matrix.fs" />
     <Compile Include="Point.fs" />
     <Compile Include="Vector.fs" />
     <Compile Include="Ray.fs" />
-    <Compile Include="Matrix.fs" />
+    <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

@@ -1,7 +1,4 @@
 ﻿module Matrix
-    open Vector
-    open Point
-    open Ray
     open System
 
     let sum i0 i1 f =
@@ -94,10 +91,3 @@
 
         member this.Print () =
             sprintf "%A" xs
-
-
-    [<EntryPoint>]
-    let main argv = 
-        let testM = Matrix.init 4 ( fun i j -> float(i*10 + j) )
-        testM.Print ()
-        0 // return an integer exit code
