@@ -26,10 +26,20 @@
         static member (/) ( m: Matrix, a: float ) =
             Matrix.init m.Dim ( fun i j -> m.[i, j] / a )
 
+        static member (*) (m: Matrix, n: Matrix ) =
+            Matrix.init m.Dim ( fun i j -> 
+                sum 0 3 (fun k -> m.[i, k] * n.[k, j]))
+
         static member Scale (x: float, y: float, z: float ) =
             Matrix( array2D [  [  x; 0.0; 0.0; 0.0];
                                 [0.0;   y; 0.0; 0.0];
                                 [0.0; 0.0; z;   0.0];
+                                [0.0; 0.0; 0.0; 1.0] ] )
+
+        static member Translate (x: float, y: float, z: float ) =
+            Matrix( array2D [  [ 1.0; 0.0; 0.0; x];
+                                [0.0; 1.0; 0.0; y];
+                                [0.0; 0.0; 1.0; z];
                                 [0.0; 0.0; 0.0; 1.0] ] )
 
         member this.SubtractRowAndColumn (row: int, column: int ) =
@@ -53,7 +63,7 @@
 
         member this.Invert () =
             let determinate = this.Determinate ()
-            let m = Matrix.init this.Dim ( fun i j -> this.SubtractRowAndColumn(i, j).Determinate() )
+            let m = Matrix.init this.Dim ( fun i j -> this.SubtractRowAndColumn(j, i).Determinate() )
             m / determinate
 
         member this.Print () =
@@ -98,6 +108,9 @@
 
         static member (*) (m: Matrix4, v: Vector4 ) =
             Vector4.init (fun i -> v.X*m.[i,0] + v.Y*m.[i,1] + v.Z*m.[i,2] + v.W*m.[i,3])
+
+        static member (*) ( v: Vector4, m: Matrix4 ) =
+            Vector4.init (fun i -> v.X*m.[0,i] + v.Y*m.[1,i] + v.Z*m.[2,i] + v.W*m.[3,i])
 
         static member (*) (m: Matrix4, p: Point4 ) =
             Point4.init (fun i -> p.X*m.[i,0] + p.Y*m.[i,1] + p.Z*m.[i,2] + p.W*m.[i,3])
