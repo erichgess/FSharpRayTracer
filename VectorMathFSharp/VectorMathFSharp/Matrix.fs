@@ -10,6 +10,12 @@
             t <- t + f i
         t
 
+    let Sign (i: int ) =
+        if i%2 = 0 then
+            1.0
+        else
+            -1.0
+
     type Matrix ( xs: float [,] ) =
         let xs = xs
 
@@ -55,15 +61,13 @@
                 this.[0,0]
             else
                 let mutable determinate = 0.0
-                let mutable sign = 1.0
                 for column = 0 to this.Dim-1 do
-                    determinate <- determinate + sign * this.[ 0, column ] * this.SubtractRowAndColumn(0, column).Determinate()
-                    sign <- -1.0 * sign
+                    determinate <- determinate + (Sign column ) * this.[ 0, column ] * this.SubtractRowAndColumn(0, column).Determinate()
                 determinate
 
         member this.Invert () =
             let determinate = this.Determinate ()
-            let m = Matrix.init this.Dim ( fun i j -> this.SubtractRowAndColumn(j, i).Determinate() )
+            let m = Matrix.init this.Dim ( fun i j -> Sign (i + j) * this.SubtractRowAndColumn(j, i).Determinate() )
             m / determinate
 
         member this.Print () =
