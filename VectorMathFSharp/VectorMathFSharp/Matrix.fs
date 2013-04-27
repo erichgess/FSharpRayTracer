@@ -48,6 +48,28 @@
                                 [0.0; 0.0; 1.0; z];
                                 [0.0; 0.0; 0.0; 1.0] ] )
 
+        static member RotateX (angle: float) =
+            let angle = angle / 180.0 * Math.PI
+            Matrix( array2D[   [1.0; 0.0;            0.0;              0.0];
+                                [0.0; Math.Cos angle; -Math.Sin angle;  0.0];
+                                [0.0; Math.Sin angle; Math.Cos angle;   0.0];
+                                [0.0; 0.0;            0.0;              1.0]] )
+
+        static member RotateY (angle: float) =
+            let angle = angle / 180.0 * Math.PI
+            Matrix( array2D[   [Math.Cos angle;  0.0; Math.Sin angle;  0.0];
+                                [0.0;             1.0; 0.0;             0.0];
+                                [-Math.Sin angle; 0.0; Math.Cos angle;  0.0];
+                                [0.0; 0.0;            0.0;              1.0]] )
+
+        static member RotateZ (angle: float) =
+            let angle = angle / 180.0 * Math.PI
+            Matrix( array2D[   [Math.Cos angle; -Math.Sin angle; 0.0;  0.0];
+                                [Math.Sin angle; Math.Cos angle;  0.0;  0.0];
+                                [0.0;            0.0;             1.0;  0.0];
+                                [0.0; 0.0;            0.0;              1.0]] )
+            
+
         member this.SubtractRowAndColumn (row: int, column: int ) =
             Matrix.init (this.Dim - 1) (
                 fun i j -> 
