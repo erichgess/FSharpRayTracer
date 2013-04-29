@@ -30,6 +30,9 @@
         static member (-) ( u: Vector3, v: Vector3 ) =
             Vector3( u.X - v.X, u.Y - v.Y, u.Z - v.Z )
 
+        static member (-) ( p: Point3, q: Point3 ) =
+            Vector3( p.X - q.X, p.Y - q.Y, p.Z - q.Z)
+
         static member (*) ( u: Vector3, v: Vector3 ) =
             u.X*v.X + u.Y*v.Y + u.Z*v.Z
 
