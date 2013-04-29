@@ -25,6 +25,12 @@
         static member (*) ( p: Point3, m: Matrix ) =
             Point3.init (fun i -> p.X*m.[0,i] + p.Y*m.[1,i] + p.Z*m.[2,i] + m.[3,i])
 
+        static member (*) ( p: Point3, q: Point3 ) =
+            p.X*q.X + p.Y*q.Y + p.Z*q.Z
+
+        member this.Print () =
+            sprintf "%f, %f, %f" this.X this.Y this.Z
+
     type Point4 ( x: float, y: float, z: float, w: float ) =
         member this.X = x
         member this.Y = y

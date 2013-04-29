@@ -11,7 +11,8 @@
         let invTransformation = transformation.Invert()
 
         member this.Intersection ( r: Ray ) = 
-            let transformedRay = r * invTransformation
+            let transformedRay = invTransformation * r
+
             let A = transformedRay.Direction * transformedRay.Direction
             let B = transformedRay.Origin * transformedRay.Direction
             let C = transformedRay.Origin * transformedRay.Origin - 1.0
@@ -22,3 +23,10 @@
                 false
             else 
                 true
+
+//            let discrimRoot = discrim |> Math.Sqrt
+//
+//            let t1 = ( -B - discrimRoot ) / A;
+//
+//            if t1 > Math.Epsilon then
+//                true

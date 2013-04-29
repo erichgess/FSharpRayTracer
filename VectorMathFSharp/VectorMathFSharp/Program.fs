@@ -1,8 +1,14 @@
-﻿module Program
-    open Matrix
+﻿open Matrix
+open Ray
+open Point
+open Vector
+open Sphere
 
-    [<EntryPoint>]
-    let main argv = 
-        let testM = Matrix.init 4 ( fun i j -> float(i*10 + j) )
-        testM.Print ()
-        0 // return an integer exit code
+[<EntryPoint>]
+let main argv = 
+    let t = Matrix.Translate( 0., 0., 10. );
+    let sp = new Sphere( t )
+    let r = new Ray( Point3(0., 0., 0.), Vector3(0., 1.,  0. ) );
+    let hit = sp.Intersection r
+    printfn "%b" hit
+    0 // return an integer exit code
