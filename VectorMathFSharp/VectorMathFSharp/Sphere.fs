@@ -15,13 +15,13 @@
             let transformedRay = invTransformation * r
 
             let a = transformedRay.Direction * transformedRay.Direction
-            let b = transformedRay.Origin * transformedRay.Direction
+            let b = 2. * transformedRay.Origin * transformedRay.Direction
             let c = transformedRay.Origin * transformedRay.Origin - 1.0
 
-            let discrim = b*b - a*c
+            let discrim = b*b - 4.*a*c
 
             if discrim < 0. then
-                false
+                None
             else
                 let discrimRoot = discrim |> Math.Sqrt
 
@@ -30,9 +30,10 @@
                 let t0 = q / a
                 let t1 = c / q
 
-                let (t0, t1) = if t0 < t1 then (t0, t1) else (t1, t0)
+                let (tFirstHit, tSecondHit) = if t0 < t1 then (t0, t1) else (t1, t0)
 
-                if t1 < 0. then
-                    false
+                if tSecondHit < 0. then
+                    None
                 else
-                    true
+                    let pointOfIntersection = r.Origin + r.Direction * tFirstHit
+                    Some( pointOfIntersection )

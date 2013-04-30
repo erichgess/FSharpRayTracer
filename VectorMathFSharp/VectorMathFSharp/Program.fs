@@ -5,41 +5,45 @@ open Vector
 open Sphere
 open System.Drawing
 
+
+let xResolution = 64
+let yResolution = 64
+
 let GetCameraRay (u: int) (v: int ) =
     let center = Vector3( 0., 0., -10. )
     let xmin = -10
     let xmax = 10
     let ymin = -10
     let ymax = 10
-    let xResolution = 256
-    let yResolution = 256
 
     let xDelta = float( xmax - xmin ) / float(xResolution )
     let yDelta = float( ymax - ymin ) / float( yResolution )
     let xPos = float(xmin) + float(u) * xDelta
     let yPos = float(ymin) + float(v) * yDelta
     let viewPoint = Vector3( xPos, yPos, 0. )
-    Ray( Point3( 0., 0., -3. ), viewPoint - center)
+    Ray( Point3( 0., 0., -10. ), (viewPoint - center).Normalize() )
 
 [<EntryPoint>]
 let main argv = 
-    let t = Matrix.Translate( 0., 0., 5. ) * Matrix.RotateY( 40. ) * Matrix.Scale( 4., 1., 1. )
+    let t = Matrix.Translate( 0., 0., 50. )
     let sp = new Sphere( t )
-    let r = new Ray( Point3(0., 0., 0.), Vector3(0., 1.,  0. ) )
-    let hit = sp.Intersection r
-    printfn "%b" hit
 
-    let bmp = new Bitmap( 256, 256 )
+    let bmp = new Bitmap( xResolution, yResolution )
+
+    let SomeColor a = 
+        Color.FromArgb(255, int( a * 200. ), 0, 0 )
 
     let CastRay x y = 
         let ray = GetCameraRay x y
-        if sp.Intersection ray then
-                bmp.SetPixel( x, y, Color.Red )
-            else
-                bmp.SetPixel( x, y, Color.Black )
+        match sp.Intersection ray with
+        | None -> bmp.SetPixel( x, y, Color.Black )
+        | Some(t) -> 
+            printf "%s ===" (ray.Print())
+            printfn "%s" (t.Print())
+            bmp.SetPixel( x, y, Color.Red )
     
-    for y= 0 to 255 do
-        for x = 0 to 255 do
+    for y= 0 to yResolution-1 do
+        for x = 0 to xResolution-1 do
             CastRay x y
 
     bmp.Save("test.bmp" )
