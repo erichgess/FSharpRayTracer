@@ -2,6 +2,7 @@
     open Matrix
     open Point
     open Ray
+    open System
 
     // The only thing which is needed is the transformation matrix.
     // The center of the sphere can be set with a translation matrix
@@ -13,20 +14,25 @@
         member this.Intersection ( r: Ray ) = 
             let transformedRay = invTransformation * r
 
-            let A = transformedRay.Direction * transformedRay.Direction
-            let B = transformedRay.Origin * transformedRay.Direction
-            let C = transformedRay.Origin * transformedRay.Origin - 1.0
+            let a = transformedRay.Direction * transformedRay.Direction
+            let b = transformedRay.Origin * transformedRay.Direction
+            let c = transformedRay.Origin * transformedRay.Origin - 1.0
 
-            let discrim = B*B - A*C
+            let discrim = b*b - a*c
 
             if discrim < 0. then
                 false
-            else 
-                true
+            else
+                let discrimRoot = discrim |> Math.Sqrt
 
-//            let discrimRoot = discrim |> Math.Sqrt
-//
-//            let t1 = ( -B - discrimRoot ) / A;
-//
-//            if t1 > Math.Epsilon then
-//                true
+                let q = if b < 0. then (-b - discrimRoot )/2. else (-b + discrimRoot )/2.
+
+                let t0 = q / a
+                let t1 = c / q
+
+                let (t0, t1) = if t0 < t1 then (t0, t1) else (t1, t0)
+
+                if t1 < 0. then
+                    false
+                else
+                    true

@@ -51,6 +51,9 @@
         member this.Normalize () =
             this / this.Length()
 
+        member this.Print() =
+            sprintf "%f, %f, %f" x y z
+
         // This operation does not use the 4th column/row of the matrix, this is because
         // that portion of the matrix is used for translations and Vectors should not be
         // translated, because for our application they represent direction.

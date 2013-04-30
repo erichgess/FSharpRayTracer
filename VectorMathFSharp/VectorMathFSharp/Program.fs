@@ -10,8 +10,8 @@ let GetCameraRay (u: int) (v: int ) =
     let xmax = 10
     let ymin = -10
     let ymax = 10
-    let xResolution = 100
-    let yResolution = 100
+    let xResolution = 10
+    let yResolution = 10
 
     let xDelta = float( xmax - xmin ) / float(xResolution )
     let yDelta = float( ymax - ymin ) / float( yResolution )
@@ -28,9 +28,10 @@ let main argv =
     let hit = sp.Intersection r
     printfn "%b" hit
 
-    let getray = GetCameraRay 0
-    for y = 0 to 100 do
+    let getray = GetCameraRay 5
+    for y = 0 to 10 do
         let ray = getray y
+        printf "%s"  (ray.Print() )
         let hit = sp.Intersection ray
-        printf "%b" hit
+        printfn " :> %b" hit
     0 // return an integer exit code
