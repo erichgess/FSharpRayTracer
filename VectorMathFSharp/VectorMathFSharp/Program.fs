@@ -30,12 +30,17 @@ let main argv =
     printfn "%b" hit
 
     let bmp = new Bitmap( 256, 256 )
-    for y= 0 to 255 do
-        for x = 0 to 255 do
-            let ray = GetCameraRay x y
-            if sp.Intersection ray then
+
+    let CastRay x y = 
+        let ray = GetCameraRay x y
+        if sp.Intersection ray then
                 bmp.SetPixel( x, y, Color.Red )
             else
                 bmp.SetPixel( x, y, Color.Black )
+    
+    for y= 0 to 255 do
+        for x = 0 to 255 do
+            CastRay x y
+
     bmp.Save("test.bmp" )
     0 // return an integer exit code
