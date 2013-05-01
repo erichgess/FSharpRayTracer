@@ -4,4 +4,4 @@
     open Ray
 
     type IShape =
-        abstract Intersection: (Ray) -> (Point3 * Vector3) option
+        abstract Intersection: (Ray) -> (float * Vector3) option

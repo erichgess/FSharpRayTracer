@@ -41,4 +41,4 @@
                         let pointOfIntersection = r.Origin + r.Direction * tFirstHit
                         let normal = transformedRay.Origin + transformedRay.Direction * tFirstHit
                         let normal = invTransformation.Transpose() * Vector3( normal.X, normal.Y, normal.Z)
-                        Some( pointOfIntersection, normal.Normalize() )
+                        Some( tFirstHit, normal.Normalize() )

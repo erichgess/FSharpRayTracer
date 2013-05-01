@@ -27,7 +27,7 @@ let GetCameraRay (u: int) (v: int ) =
 
 [<EntryPoint>]
 let main argv = 
-    let t = Matrix.Translate( 0., -2.0, 0. )* Matrix.RotateY( 0. ) * Matrix.RotateZ( 0. ) * Matrix.Scale( 5., 1., 1. )
+    let t = Matrix.Translate( 0., -2.0, 0. )
     let sp = new Plane( t )
 
     let bmp = new Bitmap( xResolution, yResolution )
@@ -35,10 +35,21 @@ let main argv =
     let SomeColor a = 
         Color.FromArgb(255, int( a * 200. ), 0, 0 )
 
+    let scene = [ new Plane( t) :> IShape; new Sphere( Matrix.Translate(0., 1., 0. ) ) :> IShape]
     let CastRay x y = 
         let ray = GetCameraRay x y
-        let shape = sp :> IShape
-        match shape.Intersection ray with
+        let intersections = scene |> List.map( fun s -> s.Intersection ray )
+        let nearestShape = intersections |> List.reduce ( fun acc intersection-> 
+            match intersection with
+            | None -> None
+            | Some(time, normal) ->
+                match acc with
+                | None -> Some(time, normal)
+                | Some(accTime, accNormal) when time < accTime -> Some(time, normal)
+                | _ -> acc
+            )
+                            
+        match nearestShape with
         | None -> Color.Black
         | Some(p, n) -> 
             let diffuse = n.Normalize() * ( Vector3( 0. - p.X, 7. - p.Y, -5. - p.Z ) ) .Normalize()

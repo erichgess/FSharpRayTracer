@@ -26,4 +26,4 @@
                     if time <= 0. then
                         None
                     else
-                        Some( transformedRay.Origin + transformedRay.Direction * time, normal)
+                        Some( time, normal)
