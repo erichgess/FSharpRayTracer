@@ -89,5 +89,8 @@
             let m = Matrix.init this.Dim ( fun i j -> Sign (i + j) * this.SubtractRowAndColumn(j, i).Determinate() )
             m / determinate
 
+        member this.Transpose () =
+            Matrix.init this.Dim ( fun i j -> this.[j, i] )
+
         member this.Print () =
             sprintf "%A" xs
