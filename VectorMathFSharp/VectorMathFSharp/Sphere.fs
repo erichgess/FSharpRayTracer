@@ -1,6 +1,7 @@
 ﻿module Sphere
     open Matrix
     open Point
+    open Vector
     open Ray
     open System
 
@@ -36,4 +37,6 @@
                     None
                 else
                     let pointOfIntersection = r.Origin + r.Direction * tFirstHit
-                    Some( pointOfIntersection )
+                    let normal = transformedRay.Origin + transformedRay.Direction * tFirstHit
+                    let normal = invTransformation.Transpose() * Vector3( normal.X, normal.Y, normal.Z)
+                    Some( pointOfIntersection, normal.Normalize() )
