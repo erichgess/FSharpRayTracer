@@ -3,6 +3,7 @@ open Ray
 open Point
 open Vector
 open Sphere
+open Plane
 open System.Drawing
 
 
@@ -25,26 +26,26 @@ let GetCameraRay (u: int) (v: int ) =
 
 [<EntryPoint>]
 let main argv = 
-    let t = Matrix.Translate( 0., 2.0, 0. )* Matrix.RotateY( 35. ) * Matrix.RotateZ( 30. ) * Matrix.Scale( 5., 1., 1. )
-    let sp = new Sphere( t )
+    let t = Matrix.Translate( 0., -2.0, 0. )* Matrix.RotateY( 0. ) * Matrix.RotateZ( 0. ) * Matrix.Scale( 5., 1., 1. )
+    let sp = new Plane( t )
 
     let bmp = new Bitmap( xResolution, yResolution )
 
     let SomeColor a = 
         Color.FromArgb(255, int( a * 200. ), 0, 0 )
 
-    let CastRay x y = 
+    let rec CastRay x y = 
         let ray = GetCameraRay x y
         match sp.Intersection ray with
-        | None -> bmp.SetPixel( x, y, Color.Black )
+        | None -> Color.Black
         | Some(p, n) -> 
             let diffuse = n.Normalize() * ( Vector3( 0. - p.X, 7. - p.Y, -5. - p.Z ) ) .Normalize()
             let diffuse = if diffuse < 0. then 0. else diffuse
-            bmp.SetPixel( x, y, SomeColor diffuse )
+            SomeColor diffuse
     
     for y= 0 to yResolution-1 do
         for x = 0 to xResolution-1 do
-            CastRay x y
+            bmp.SetPixel( x, y, (CastRay x y))
 
     bmp.Save("test.bmp" )
     0 // return an integer exit code
