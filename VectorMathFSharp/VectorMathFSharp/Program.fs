@@ -2,6 +2,7 @@
 open Ray
 open Point
 open Vector
+open Shape
 open Sphere
 open Plane
 open System.Drawing
@@ -34,9 +35,10 @@ let main argv =
     let SomeColor a = 
         Color.FromArgb(255, int( a * 200. ), 0, 0 )
 
-    let rec CastRay x y = 
+    let CastRay x y = 
         let ray = GetCameraRay x y
-        match sp.Intersection ray with
+        let shape = sp :> IShape
+        match shape.Intersection ray with
         | None -> Color.Black
         | Some(p, n) -> 
             let diffuse = n.Normalize() * ( Vector3( 0. - p.X, 7. - p.Y, -5. - p.Z ) ) .Normalize()
