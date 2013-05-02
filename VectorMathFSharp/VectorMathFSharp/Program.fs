@@ -10,8 +10,8 @@ open System.Threading
 open System.Timers
 
 
-let xResolution = 256
-let yResolution = 256
+let xResolution = 512
+let yResolution = 512
 
 let GetCameraRay (u: int) (v: int ) =
     let center = Vector3( 0., 0., -8. )
@@ -37,10 +37,9 @@ let main argv =
                     new Plane( Matrix.Translate( 0., -2.0, 0. ), Color.Red) :> IShape;
                     new Sphere( Matrix.Translate( 2., 0., 0.), Color.Green) :> IShape ]
 
-    let CastRay x y = 
-        let ray = GetCameraRay x y
+    let CastRay ray = 
         let intersections = scene |> List.map( fun s -> (s.Intersection ray) )
-        let nearestShape = intersections |> List.reduce ( fun acc intersection-> 
+        intersections |> List.reduce ( fun acc intersection-> 
             match acc with
             | None -> intersection
             | Some(time, normal, color) ->
@@ -49,21 +48,30 @@ let main argv =
                     -> intersection
                 | _ -> acc
             )
-    
+
+    let CalculateShading (ray:Ray) (nearestShape:(float*Vector3*Color) option ) =
         match nearestShape with
         | None -> Color.Black
         | Some(time, n, color) -> 
             let p = ray.Origin + ray.Direction * time
-            let diffuse = n.Normalize() * ( Vector3( 0. - p.X, 7. - p.Y, -5. - p.Z ) ) .Normalize()
+            let light = Vector3( 0., 7., -5. )
+            let surfaceToLight = ( Vector3( light.X - p.X, light.Y - p.Y, light.Z - p.Z ) ).Normalize()
+            let diffuse = n.Normalize() * surfaceToLight
             let diffuse = if diffuse < 0. then 0. else diffuse
-            SomeColor color diffuse
+
+            let surfaceToLightRay = new Ray( p, surfaceToLight )
+            match (CastRay surfaceToLightRay) with
+            | Some(time, normal, color) when time >= 0.001 -> Color.Black   // This small value is to prevent self intersection with the surface near the origin
+            | _ -> SomeColor color diffuse
     
     let startTime = System.DateTime.Now
 
     let bmp = new Bitmap( xResolution, yResolution )
     for y= 0 to yResolution-1 do
         for x = 0 to xResolution-1 do 
-            bmp.SetPixel( x, y, (CastRay x y))
+            let ray = GetCameraRay x y
+            let intersection = CastRay ray
+            bmp.SetPixel( x, y, (CalculateShading ray intersection) )
 
     let endTime = System.DateTime.Now
     let duration = (endTime - startTime).TotalSeconds
