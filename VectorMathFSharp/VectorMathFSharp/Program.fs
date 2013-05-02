@@ -10,8 +10,8 @@ open System.Threading
 open System.Timers
 
 
-let xResolution = 32
-let yResolution = 32
+let xResolution = 256
+let yResolution = 256
 
 let GetCameraRay (u: int) (v: int ) =
     let center = Vector3( 0., 0., -8. )
@@ -42,12 +42,11 @@ let main argv =
         let ray = GetCameraRay x y
         let intersections = scene |> List.map( fun s -> s.Intersection ray )
         let nearestShape = intersections |> List.reduce ( fun acc intersection-> 
-            match intersection with
-            | None -> None
+            match acc with
+            | None -> intersection
             | Some(time, normal) ->
-                match acc with
-                | None -> Some(time, normal)
-                | Some(accTime, accNormal) when time < accTime -> Some(time, normal)
+                match intersection with
+                | Some(intersectionTime, intersectionNormal) when intersectionTime < time -> Some(intersectionTime, intersectionNormal)
                 | _ -> acc
             )       
     
