@@ -29,16 +29,14 @@ let GetCameraRay (u: int) (v: int ) =
 
 [<EntryPoint>]
 let main argv = 
-    let t = Matrix.Translate( 0., -2.0, 0. )
-    let sp = new Plane( t )
-
-    let bmp = new Bitmap( xResolution, yResolution )
-
     let SomeColor (color: Color) (shading: float) =
         let shade x = int( shading * float(x)) 
         Color.FromArgb(255, shade color.R, shade color.G, shade color.B )
 
-    let scene = [  new Sphere( Matrix.Translate(0., 1., 0. ) ) :> IShape; new Plane( t) :> IShape]
+    let scene = [  new Sphere( Matrix.Translate(0., 1., 0. ), Color.Blue ) :> IShape; 
+                    new Plane( Matrix.Translate( 0., -2.0, 0. ), Color.Red) :> IShape;
+                    new Sphere( Matrix.Translate( 2., 0., 0.), Color.Green) :> IShape ]
+
     let CastRay x y = 
         let ray = GetCameraRay x y
         let intersections = scene |> List.map( fun s -> (s.Intersection ray) )
@@ -47,10 +45,10 @@ let main argv =
             | None -> intersection
             | Some(time, normal, color) ->
                 match intersection with
-                | Some(intersectionTime, intersectionNormal, intersectionColor) when intersectionTime < time -> 
-                    Some(intersectionTime, intersectionNormal, intersectionColor)
+                | Some(intersectionTime, intersectionNormal, intersectionColor) when intersectionTime < time 
+                    -> intersection
                 | _ -> acc
-            )       
+            )
     
         match nearestShape with
         | None -> Color.Black
@@ -61,6 +59,8 @@ let main argv =
             SomeColor color diffuse
     
     let startTime = System.DateTime.Now
+
+    let bmp = new Bitmap( xResolution, yResolution )
     for y= 0 to yResolution-1 do
         for x = 0 to xResolution-1 do 
             bmp.SetPixel( x, y, (CastRay x y))

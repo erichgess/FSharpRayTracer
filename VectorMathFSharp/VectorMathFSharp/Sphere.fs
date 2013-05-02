@@ -10,12 +10,13 @@
     // The only thing which is needed is the transformation matrix.
     // The center of the sphere can be set with a translation matrix
     // The radius of the sphere can be set with a scaling matrix
-    type Sphere ( transformation: Matrix ) =
+    type Sphere ( transformation: Matrix, color: Color ) =
+        let color = color
         let transformation = transformation
         let invTransformation = transformation.Invert()
 
         interface IShape with
-            member this.Color = Color.Blue
+            member this.Color = color
 
             member this.Intersection ( r: Ray ) = 
                 let transformedRay = invTransformation * r
