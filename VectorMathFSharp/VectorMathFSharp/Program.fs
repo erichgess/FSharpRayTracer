@@ -34,29 +34,31 @@ let main argv =
 
     let bmp = new Bitmap( xResolution, yResolution )
 
-    let SomeColor a = 
-        Color.FromArgb(255, int( a * 200. ), 0, 0 )
+    let SomeColor (color: Color) (shading: float) =
+        let shade x = int( shading * float(x)) 
+        Color.FromArgb(255, shade color.R, shade color.G, shade color.B )
 
     let scene = [  new Sphere( Matrix.Translate(0., 1., 0. ) ) :> IShape; new Plane( t) :> IShape]
     let CastRay x y = 
         let ray = GetCameraRay x y
-        let intersections = scene |> List.map( fun s -> s.Intersection ray )
+        let intersections = scene |> List.map( fun s -> (s.Intersection ray) )
         let nearestShape = intersections |> List.reduce ( fun acc intersection-> 
             match acc with
             | None -> intersection
-            | Some(time, normal) ->
+            | Some(time, normal, color) ->
                 match intersection with
-                | Some(intersectionTime, intersectionNormal) when intersectionTime < time -> Some(intersectionTime, intersectionNormal)
+                | Some(intersectionTime, intersectionNormal, intersectionColor) when intersectionTime < time -> 
+                    Some(intersectionTime, intersectionNormal, intersectionColor)
                 | _ -> acc
             )       
     
         match nearestShape with
         | None -> Color.Black
-        | Some(time, n) -> 
+        | Some(time, n, color) -> 
             let p = ray.Origin + ray.Direction * time
             let diffuse = n.Normalize() * ( Vector3( 0. - p.X, 7. - p.Y, -5. - p.Z ) ) .Normalize()
             let diffuse = if diffuse < 0. then 0. else diffuse
-            SomeColor diffuse
+            SomeColor color diffuse
     
     let startTime = System.DateTime.Now
     for y= 0 to yResolution-1 do

@@ -5,6 +5,7 @@
     open Ray
     open Shape
     open System
+    open System.Drawing
 
     type Plane ( transformation: Matrix ) =
         let transformation = transformation
@@ -13,6 +14,8 @@
         let normal = (inverseTransformation.Transpose() * Vector3( 0., 1., 0. )).Normalize()
 
         interface IShape with
+            member this.Color = Color.Red
+
             member this.Intersection( r: Ray ) =
                 let transformedRay = inverseTransformation * r
 
@@ -26,4 +29,5 @@
                     if time <= 0. then
                         None
                     else
-                        Some( time, normal)
+                        let shape = this :> IShape
+                        Some( time, normal, shape.Color)

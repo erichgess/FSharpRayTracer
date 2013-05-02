@@ -5,6 +5,7 @@
     open Ray
     open Shape
     open System
+    open System.Drawing
 
     // The only thing which is needed is the transformation matrix.
     // The center of the sphere can be set with a translation matrix
@@ -14,6 +15,8 @@
         let invTransformation = transformation.Invert()
 
         interface IShape with
+            member this.Color = Color.Blue
+
             member this.Intersection ( r: Ray ) = 
                 let transformedRay = invTransformation * r
 
@@ -41,4 +44,5 @@
                         let pointOfIntersection = r.Origin + r.Direction * tFirstHit
                         let normal = transformedRay.Origin + transformedRay.Direction * tFirstHit
                         let normal = invTransformation.Transpose() * Vector3( normal.X, normal.Y, normal.Z)
-                        Some( tFirstHit, normal.Normalize() )
+                        let shape = this :> IShape
+                        Some( tFirstHit, normal.Normalize(), shape.Color )
