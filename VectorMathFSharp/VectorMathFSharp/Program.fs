@@ -5,13 +5,14 @@ open Vector
 open Shape
 open Sphere
 open Plane
+open Light
 open System.Drawing
 open System.Threading
 open System.Timers
 
 
-let xResolution = 512
-let yResolution = 512
+let xResolution = 1024
+let yResolution = 1024
 
 let GetCameraRay (u: int) (v: int ) =
     let center = Vector3( 0., 0., -8. )
@@ -33,9 +34,12 @@ let main argv =
         let shade x = int( shading * float(x)) 
         Color.FromArgb(255, shade color.R, shade color.G, shade color.B )
 
-    let scene = [  new Sphere( Matrix.Translate(0., 1., 0. ), Color.Blue ) :> IShape; 
-                    new Plane( Matrix.Translate( 0., -2.0, 0. ), Color.Red) :> IShape;
-                    new Sphere( Matrix.Translate( 2., 0., 0.), Color.Green) :> IShape ]
+    let light = new Light(Point3( 0., 8., -6. ), Color.Green )
+    let light2 = new Light(Point3( -7., 9., -7. ), Color.Blue )
+    let lightSet = [ light; light2 ]
+    let scene = [  new Sphere( Matrix.Translate(-1., 1., -1. ), Color.Gray ) :> IShape; 
+                    new Plane( Matrix.Translate( 0., -2.0, 0. ), Color.Gray) :> IShape;
+                    new Sphere( Matrix.Translate( 2., 0., 0.), Color.Gray) :> IShape ]
 
     let CastRay ray = 
         let intersections = scene |> List.map( fun s -> (s.Intersection ray) )
@@ -49,20 +53,20 @@ let main argv =
                 | _ -> acc
             )
 
-    let CalculateShading (ray:Ray) (nearestShape:(float*Vector3*Color) option ) =
+    let CalculateShading (light: Light) (ray:Ray) (nearestShape:(float*Vector3*Color) option ) =
         match nearestShape with
         | None -> Color.Black
         | Some(time, n, color) -> 
             let p = ray.Origin + ray.Direction * time
-            let light = Vector3( 0., 7., -5. )
-            let surfaceToLight = ( Vector3( light.X - p.X, light.Y - p.Y, light.Z - p.Z ) ).Normalize()
-            let diffuse = n.Normalize() * surfaceToLight
-            let diffuse = if diffuse < 0. then 0. else diffuse
+            let surfaceToLight = ( light.Position - p ).Normalize()
 
-            let surfaceToLightRay = new Ray( p, surfaceToLight )
+            let surfaceToLightRay = new Ray( p + surfaceToLight * 0.0001, surfaceToLight )
             match (CastRay surfaceToLightRay) with
-            | Some(time, normal, color) when time >= 0.001 -> Color.Black   // This small value is to prevent self intersection with the surface near the origin
-            | _ -> SomeColor color diffuse
+            | Some(time, normal, color) when time >= 0. -> Color.Black   // This small value is to prevent self intersection with the surface near the origin
+            | _ ->
+                let diffuse = n.Normalize() * surfaceToLight
+                let diffuse = if diffuse < 0. then 0. else diffuse
+                SomeColor (MultiplyColors color light.Color) diffuse
     
     let startTime = System.DateTime.Now
 
@@ -71,7 +75,9 @@ let main argv =
         for x = 0 to xResolution-1 do 
             let ray = GetCameraRay x y
             let intersection = CastRay ray
-            bmp.SetPixel( x, y, (CalculateShading ray intersection) )
+
+            let shade = lightSet |> List.map ( fun l -> CalculateShading l ray intersection ) |> List.reduce ( fun acc l -> AddColors acc l )
+            bmp.SetPixel( x, y, shade )
 
     let endTime = System.DateTime.Now
     let duration = (endTime - startTime).TotalSeconds

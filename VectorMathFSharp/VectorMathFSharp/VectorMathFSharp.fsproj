@@ -42,12 +42,13 @@
   <ItemGroup>
     <None Include="App.config" />
     <Compile Include="Matrix.fs" />
-    <Compile Include="Point.fs" />
     <Compile Include="Vector.fs" />
+    <Compile Include="Point.fs" />
     <Compile Include="Ray.fs" />
     <Compile Include="Shape.fs" />
     <Compile Include="Sphere.fs" />
     <Compile Include="Plane.fs" />
+    <Compile Include="Light.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>

@@ -1,5 +1,6 @@
 ﻿module Point
     open System
+    open Vector
     open Matrix
 
     type Point3 ( x: float, y: float, z: float ) =
@@ -16,6 +17,15 @@
 
         static member (*) ( p: Point3, a: float ) =
             a * p
+
+        static member (-) ( p: Point3, q: Point3 ) =
+            Vector3( p.X - q.X, p.Y - q.Y, p.Z - q.Z)
+
+        static member (*) ( p: Point3, v: Vector3 ) =
+            p.X*v.X + p.Y*v.Y + p.Z*v.Z
+
+        static member (+) ( p: Point3, v: Vector3 ) =
+            Point3( p.X + v.X, p.Y + v.Y, p.Z + v.Z )
 
         // The 4th row/col of the matrix is added to the point, because that portion
         // of the matrix represents translations.
@@ -52,3 +62,6 @@
 
         static member (*) ( p: Point4, m: Matrix ) =
             Point4.init (fun i -> p.X*m.[0,i] + p.Y*m.[1,i] + p.Z*m.[2,i] + p.W*m.[3,i])
+
+        static member (-) ( p: Point4, q: Point4 ) =
+            Vector4( p.X - q.X, p.Y - q.Y, p.Z - q.Z, p.W - q.W )
