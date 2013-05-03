@@ -34,16 +34,16 @@ let main argv =
         let shade x = int( shading * float(x)) 
         Color.FromArgb(255, shade color.R, shade color.G, shade color.B )
 
-    let light = new Light(Point3( 0., 8., -6. ), Color.Green )
-    let light2 = new Light(Point3( -7., 9., -7. ), Color.Blue )
+    let light = new Light(Point3( 0., 8., -6. ), Color.Gray )
+    let light2 = new Light(Point3( -7., 9., -7. ), Color.Gray )
     let lightSet = [ light; light2 ]
-    let scene = [  new Sphere( Matrix.Translate(-1., 1., -1. ), Color.Gray ) :> IShape; 
+    let scene = [  new Sphere( Matrix.Translate(-1., 1., -1. ), Color.Blue ) :> IShape; 
                     new Plane( Matrix.Translate( 0., -2.0, 0. ), Color.Gray) :> IShape;
-                    new Sphere( Matrix.Translate( 2., 0., 0.), Color.Gray) :> IShape ]
+                    new Sphere( Matrix.Translate( 2., 0., 0.), Color.Green) :> IShape ]
 
-    let CastRay ray = 
+    let rec CastRay depth ray = 
         let intersections = scene |> List.map( fun s -> (s.Intersection ray) )
-        intersections |> List.reduce ( fun acc intersection-> 
+        let hit = intersections |> List.reduce ( fun acc intersection-> 
             match acc with
             | None -> intersection
             | Some(time, normal, color) ->
@@ -52,6 +52,14 @@ let main argv =
                     -> intersection
                 | _ -> acc
             )
+        if depth = 0 then
+            hit :: []
+        else if hit = None then
+            []
+        else
+            let time, normal, _ = hit.Value
+            let reflectedDirection = -ray.Direction.ReflectAbout normal
+            hit :: CastRay (depth - 1) ( new Ray( time * ray + reflectedDirection * 0.0001, reflectedDirection ))
 
     let CalculateShading (light: Light) (ray:Ray) (nearestShape:(float*Vector3*Color) option ) =
         match nearestShape with
@@ -60,9 +68,11 @@ let main argv =
             let p = ray.Origin + ray.Direction * time
             let surfaceToLight = ( light.Position - p ).Normalize()
 
+            // This small value is to prevent self intersection with the surface near the origin
             let surfaceToLightRay = new Ray( p + surfaceToLight * 0.0001, surfaceToLight )
-            match (CastRay surfaceToLightRay) with
-            | Some(time, normal, color) when time >= 0. -> Color.Black   // This small value is to prevent self intersection with the surface near the origin
+
+            match (CastRay 0 surfaceToLightRay) with
+            | Some(time, normal, color) :: tail -> Color.Black
             | _ ->
                 let diffuse = n.Normalize() * surfaceToLight
                 let diffuse = if diffuse < 0. then 0. else diffuse
@@ -74,9 +84,13 @@ let main argv =
     for y= 0 to yResolution-1 do
         for x = 0 to xResolution-1 do 
             let ray = GetCameraRay x y
-            let intersection = CastRay ray
-
-            let shade = lightSet |> List.map ( fun l -> CalculateShading l ray intersection ) |> List.reduce ( fun acc l -> AddColors acc l )
+            let intersection = CastRay 2 ray
+            let shade =  match intersection with
+                            | [] -> Color.Black
+                            | head :: tail -> intersection |> List.rev |> List.map ( fun hit -> 
+                                                                            lightSet |> List.map ( fun l -> CalculateShading l ray hit ) 
+                                                                                     |> List.reduce ( fun acc l -> AddColors acc l ) )
+                                                            |> List.reduce( fun acc color -> AddColors (SomeColor acc 0.5) color )
             bmp.SetPixel( x, y, shade )
 
     let endTime = System.DateTime.Now

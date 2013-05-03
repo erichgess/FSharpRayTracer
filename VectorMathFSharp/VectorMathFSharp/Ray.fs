@@ -22,5 +22,8 @@
         static member (*) (r: Ray, m: Matrix ) =
             Ray( r.Origin * m, r.Direction * m )
 
+        static member (*) (t: float, r: Ray ) =
+            r.Origin + t * r.Direction
+
         member this.Print() =
             sprintf "(%s) -> (%s)" ( this.Origin.Print() ) (this.Direction.Print() )

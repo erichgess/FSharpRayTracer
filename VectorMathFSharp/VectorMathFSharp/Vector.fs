@@ -44,6 +44,9 @@
         member this.Normalize () =
             this / this.Length()
 
+        member this.ReflectAbout( n: Vector3 ) =
+            2. * ( n * this ) * n - this
+
         member this.Print() =
             sprintf "%f, %f, %f" x y z
 
