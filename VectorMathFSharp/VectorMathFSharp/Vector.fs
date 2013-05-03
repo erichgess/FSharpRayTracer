@@ -1,5 +1,4 @@
 ﻿module Vector
-    open Point
     open Matrix
     open System
 
@@ -30,17 +29,8 @@
         static member (-) ( u: Vector3, v: Vector3 ) =
             Vector3( u.X - v.X, u.Y - v.Y, u.Z - v.Z )
 
-        static member (-) ( p: Point3, q: Point3 ) =
-            Vector3( p.X - q.X, p.Y - q.Y, p.Z - q.Z)
-
-        static member (+) ( p: Point3, v: Vector3 ) =
-            Point3( p.X + v.X, p.Y + v.Y, p.Z + v.Z )
-
         static member (*) ( u: Vector3, v: Vector3 ) =
             u.X*v.X + u.Y*v.Y + u.Z*v.Z
-
-        static member (*) ( p: Point3, v: Vector3 ) =
-            p.X*v.X + p.Y*v.Y + p.Z*v.Z
 
         static member ( >< ) (u: Vector3, v: Vector3 ) =
             Vector3(u.Y*v.Z - u.Z*v.Y, -(u.X*v.Z - u.Z*v.X), u.X*v.Y - u.Y*v.X )
@@ -93,9 +83,6 @@
 
         static member (-) ( u: Vector4, v: Vector4 ) =
             Vector4( u.X - v.X, u.Y - v.Y, u.Z - v.Z, u.W - v.W )
-
-        static member (-) ( p: Point4, q: Point4 ) =
-            Vector4( p.X - q.X, p.Y - q.Y, p.Z - q.Z, p.W - q.W )
 
         member this.LengthSquared () =
             x*x + y*y + z*z + w*w

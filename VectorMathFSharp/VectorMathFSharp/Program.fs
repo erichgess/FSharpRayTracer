@@ -5,6 +5,7 @@ open Vector
 open Shape
 open Sphere
 open Plane
+open Light
 open System.Drawing
 open System.Threading
 open System.Timers
@@ -33,6 +34,9 @@ let main argv =
         let shade x = int( shading * float(x)) 
         Color.FromArgb(255, shade color.R, shade color.G, shade color.B )
 
+    let light = new Light(Point3( 0., 7., -5. ), Color.SeaGreen )
+    let light2 = new Light(Point3( 5., 7., -5. ), Color.SeaGreen )
+    let lightSet = [ light; light2 ]
     let scene = [  new Sphere( Matrix.Translate(0., 1., 0. ), Color.Blue ) :> IShape; 
                     new Plane( Matrix.Translate( 0., -2.0, 0. ), Color.Red) :> IShape;
                     new Sphere( Matrix.Translate( 2., 0., 0.), Color.Green) :> IShape ]
@@ -49,13 +53,13 @@ let main argv =
                 | _ -> acc
             )
 
-    let CalculateShading (ray:Ray) (nearestShape:(float*Vector3*Color) option ) =
+    let CalculateShading (light: Light) (ray:Ray) (nearestShape:(float*Vector3*Color) option ) =
         match nearestShape with
         | None -> Color.Black
         | Some(time, n, color) -> 
             let p = ray.Origin + ray.Direction * time
-            let light = Vector3( 0., 7., -5. )
-            let surfaceToLight = ( Vector3( light.X - p.X, light.Y - p.Y, light.Z - p.Z ) ).Normalize()
+            let surfaceToLight = ( light.Position - p ).Normalize()
+
             let diffuse = n.Normalize() * surfaceToLight
             let diffuse = if diffuse < 0. then 0. else diffuse
 
@@ -71,7 +75,10 @@ let main argv =
         for x = 0 to xResolution-1 do 
             let ray = GetCameraRay x y
             let intersection = CastRay ray
-            bmp.SetPixel( x, y, (CalculateShading ray intersection) )
+            let s1 = CalculateShading light ray intersection
+            let s2 = CalculateShading light2 ray intersection
+            let shade = lightSet |> List.map ( fun l -> CalculateShading l ray intersection ) |> List.reduce ( fun acc l -> AddColors acc l )
+            bmp.SetPixel( x, y, (AddColors s1 s2) )
 
     let endTime = System.DateTime.Now
     let duration = (endTime - startTime).TotalSeconds
