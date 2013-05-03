@@ -84,13 +84,13 @@ let main argv =
     for y= 0 to yResolution-1 do
         for x = 0 to xResolution-1 do 
             let ray = GetCameraRay x y
-            let intersection = CastRay 1 ray
+            let intersection = CastRay 2 ray
             let shade =  match intersection with
                             | [] -> Color.Black
-                            | head :: tail -> intersection |> List.map ( fun hit -> 
+                            | head :: tail -> intersection |> List.rev |> List.map ( fun hit -> 
                                                                             lightSet |> List.map ( fun l -> CalculateShading l ray hit ) 
                                                                                      |> List.reduce ( fun acc l -> AddColors acc l ) )
-                                                            |> List.reduce( fun acc color -> AddColors acc color )
+                                                            |> List.reduce( fun acc color -> AddColors (SomeColor acc 0.5) color )
             bmp.SetPixel( x, y, shade )
 
     let endTime = System.DateTime.Now
