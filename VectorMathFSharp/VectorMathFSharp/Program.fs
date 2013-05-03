@@ -75,8 +75,7 @@ let main argv =
         for x = 0 to xResolution-1 do 
             let ray = GetCameraRay x y
             let intersection = CastRay ray
-            let s1 = CalculateShading light ray intersection
-            let s2 = CalculateShading light2 ray intersection
+
             let shade = lightSet |> List.map ( fun l -> CalculateShading l ray intersection ) |> List.reduce ( fun acc l -> AddColors acc l )
             bmp.SetPixel( x, y, (AddColors s1 s2) )
 
