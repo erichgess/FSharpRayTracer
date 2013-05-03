@@ -16,3 +16,16 @@
         let b = byteAdder c1.B c2.B
 
         Color.FromArgb(255, r, g, b )
+
+    let MultiplyColors (c1: Color) ( c2: Color ) =
+        let byteMultiplier a b =
+            let a = float(a) / 255.
+            let b = float(b) / 255.
+            let product = a * b
+            int( product * 255. )
+
+        let r = byteMultiplier c1.R c2.R
+        let g = byteMultiplier c1.G c2.G
+        let b = byteMultiplier c1.B c2.B
+
+        Color.FromArgb( 255, r, g, b )

@@ -34,12 +34,12 @@ let main argv =
         let shade x = int( shading * float(x)) 
         Color.FromArgb(255, shade color.R, shade color.G, shade color.B )
 
-    let light = new Light(Point3( 0., 8., -6. ), Color.SeaGreen )
-    let light2 = new Light(Point3( -7., 9., -7. ), Color.SeaGreen )
+    let light = new Light(Point3( 0., 8., -6. ), Color.Green )
+    let light2 = new Light(Point3( -7., 9., -7. ), Color.Blue )
     let lightSet = [ light; light2 ]
-    let scene = [  new Sphere( Matrix.Translate(-1., 1., -1. ), Color.DarkBlue ) :> IShape; 
-                    new Plane( Matrix.Translate( 0., -2.0, 0. ), Color.DarkRed) :> IShape;
-                    new Sphere( Matrix.Translate( 2., 0., 0.), Color.DarkGreen) :> IShape ]
+    let scene = [  new Sphere( Matrix.Translate(-1., 1., -1. ), Color.Gray ) :> IShape; 
+                    new Plane( Matrix.Translate( 0., -2.0, 0. ), Color.Gray) :> IShape;
+                    new Sphere( Matrix.Translate( 2., 0., 0.), Color.Gray) :> IShape ]
 
     let CastRay ray = 
         let intersections = scene |> List.map( fun s -> (s.Intersection ray) )
@@ -60,13 +60,13 @@ let main argv =
             let p = ray.Origin + ray.Direction * time
             let surfaceToLight = ( light.Position - p ).Normalize()
 
-            let diffuse = n.Normalize() * surfaceToLight
-            let diffuse = if diffuse < 0. then 0. else diffuse
-
             let surfaceToLightRay = new Ray( p + surfaceToLight * 0.0001, surfaceToLight )
             match (CastRay surfaceToLightRay) with
             | Some(time, normal, color) when time >= 0. -> Color.Black   // This small value is to prevent self intersection with the surface near the origin
-            | _ -> SomeColor color diffuse
+            | _ ->
+                let diffuse = n.Normalize() * surfaceToLight
+                let diffuse = if diffuse < 0. then 0. else diffuse
+                SomeColor (MultiplyColors color light.Color) diffuse
     
     let startTime = System.DateTime.Now
 
