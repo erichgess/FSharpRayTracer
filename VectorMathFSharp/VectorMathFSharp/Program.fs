@@ -80,17 +80,20 @@ let main argv =
     
     let startTime = System.DateTime.Now
 
+    let ColorPixel u v =
+        let ray = GetCameraRay u v
+        let intersection = CastRay 2 ray
+        match intersection with
+        | [] -> Color.Black
+        | head :: tail -> intersection |> List.rev |> List.map ( fun hit -> 
+                                                        lightSet |> List.map ( fun l -> CalculateShading l ray hit ) 
+                                                                    |> List.reduce ( fun acc l -> AddColors acc l ) )
+                                        |> List.reduce( fun acc color -> AddColors (SomeColor acc 0.5) color )
+
     let bmp = new Bitmap( xResolution, yResolution )
     for y= 0 to yResolution-1 do
         for x = 0 to xResolution-1 do 
-            let ray = GetCameraRay x y
-            let intersection = CastRay 2 ray
-            let shade =  match intersection with
-                            | [] -> Color.Black
-                            | head :: tail -> intersection |> List.rev |> List.map ( fun hit -> 
-                                                                            lightSet |> List.map ( fun l -> CalculateShading l ray hit ) 
-                                                                                     |> List.reduce ( fun acc l -> AddColors acc l ) )
-                                                            |> List.reduce( fun acc color -> AddColors (SomeColor acc 0.5) color )
+            let shade = ColorPixel x y
             bmp.SetPixel( x, y, shade )
 
     let endTime = System.DateTime.Now
