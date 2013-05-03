@@ -58,7 +58,8 @@ let main argv =
             []
         else
             let time, normal, _ = hit.Value
-            hit :: CastRay (depth - 1) ( new Ray( time * ray, normal ))
+            let reflectedDirection = -ray.Direction.ReflectAbout normal
+            hit :: CastRay (depth - 1) ( new Ray( time * ray + reflectedDirection * 0.0001, reflectedDirection ))
 
     let CalculateShading (light: Light) (ray:Ray) (nearestShape:(float*Vector3*Color) option ) =
         match nearestShape with
@@ -67,9 +68,11 @@ let main argv =
             let p = ray.Origin + ray.Direction * time
             let surfaceToLight = ( light.Position - p ).Normalize()
 
+            // This small value is to prevent self intersection with the surface near the origin
             let surfaceToLightRay = new Ray( p + surfaceToLight * 0.0001, surfaceToLight )
+
             match (CastRay 0 surfaceToLightRay) with
-            | Some(time, normal, color) :: tail -> Color.Black   // This small value is to prevent self intersection with the surface near the origin
+            | Some(time, normal, color) :: tail -> Color.Black
             | _ ->
                 let diffuse = n.Normalize() * surfaceToLight
                 let diffuse = if diffuse < 0. then 0. else diffuse
@@ -84,7 +87,10 @@ let main argv =
             let intersection = CastRay 1 ray
             let shade =  match intersection with
                             | [] -> Color.Black
-                            | head :: tail ->lightSet |> List.map ( fun l -> CalculateShading l ray head ) |> List.reduce ( fun acc l -> AddColors acc l )
+                            | head :: tail -> intersection |> List.map ( fun hit -> 
+                                                                            lightSet |> List.map ( fun l -> CalculateShading l ray hit ) 
+                                                                                     |> List.reduce ( fun acc l -> AddColors acc l ) )
+                                                            |> List.reduce( fun acc color -> AddColors acc color )
             bmp.SetPixel( x, y, shade )
 
     let endTime = System.DateTime.Now
