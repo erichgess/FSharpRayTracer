@@ -8,11 +8,12 @@ open Plane
 open Light
 open System.Drawing
 open System.Threading
+open System.Threading.Tasks
 open System.Timers
 
 
-let xResolution = 1024
-let yResolution = 1024
+let xResolution = 2048
+let yResolution = 2048
 
 let GetCameraRay (u: int) (v: int ) =
     let center = Vector3( 0., 0., -8. )
@@ -83,12 +84,10 @@ let main argv =
                 let diffuse = n.Normalize() * surfaceToLight
                 let diffuse = if diffuse < 0. then 0. else diffuse
                 SomeColor (MultiplyColors color light.Color) diffuse
-    
-    let startTime = System.DateTime.Now
-
+   
     let ColorPixel u v =
         let ray = GetCameraRay u v
-        let intersection = CastRay 2 ray
+        let intersection = CastRay 4 ray
         match intersection with
         | [] -> Color.Black
         | head :: tail -> intersection |> List.rev |> List.map ( fun hit -> 
@@ -97,13 +96,26 @@ let main argv =
                                         |> List.reduce( fun acc color -> AddColors (SomeColor acc 0.5) color )
 
     let bmp = new Bitmap( xResolution, yResolution )
-    for y= 0 to yResolution-1 do
+
+    
+    let ColorXRow y =
         for x = 0 to xResolution-1 do 
             let shade = ColorPixel x y
-            bmp.SetPixel( x, y, shade )
+            ()
+            //bmp.SetPixel( x, y, shade )
+
+    let startTime = System.DateTime.Now
+    for y= 0 to yResolution-1 do
+        ColorXRow y
+    let endTime = System.DateTime.Now
+    let duration = (endTime - startTime).TotalSeconds
+    printfn "Not Parallel Duration: %f" duration
+
+    let startTime = System.DateTime.Now
+    let _  = Parallel.For( 0, yResolution - 1, new System.Action<int>(ColorXRow))
 
     let endTime = System.DateTime.Now
     let duration = (endTime - startTime).TotalSeconds
-    printfn "Duration: %f" duration
+    printfn "Parallel Duration: %f" duration
     bmp.Save("test.bmp" )
     0 // return an integer exit code
