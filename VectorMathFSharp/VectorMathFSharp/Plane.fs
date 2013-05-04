@@ -26,8 +26,10 @@
                     None
                 else
                     let time = -transformedRay.Origin.Y / denom
-
-                    if time <= 0. then
+                    let intersectionPoint = time * transformedRay
+                    let withinSquare = intersectionPoint.X <= 1. && -1. <= intersectionPoint.X
+                                        && intersectionPoint.Z <= 1. && -1. <= intersectionPoint.Z
+                    if time <= 0. || not withinSquare then
                         None
                     else
                         let shape = this :> IShape
