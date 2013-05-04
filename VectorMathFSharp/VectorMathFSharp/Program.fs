@@ -41,7 +41,8 @@ let main argv =
     let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0. ), Color.Gray) :> IShape;
                     new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), Color.CornflowerBlue) :> IShape;
                     new Sphere( Matrix.Translate( 0., 3.0, 0. ) * Matrix.Scale( 2., 2., 2. ), Color.LightSeaGreen) :> IShape;
-                    new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 10., 10., 10. ), Color.Green) :> IShape ]
+                    new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 10., 10., 10. ), Color.Green) :> IShape;
+                    new Plane( Matrix.RotateY( 45. ) * Matrix.Translate( 0., 0., 5.) * Matrix.Scale( 10., 10., 10. ) * Matrix.RotateX( -90.0 ), Color.DarkBlue) :> IShape ]
 
     let rec CastRay reflections ray = 
         let intersections = scene   |> List.map( fun s -> (s.Intersection ray) ) 
@@ -87,7 +88,7 @@ let main argv =
    
     let ColorPixel u v =
         let ray = GetCameraRay u v
-        let intersection = CastRay 4 ray
+        let intersection = CastRay 15 ray
         match intersection with
         | [] -> Color.Black
         | head :: tail -> intersection |> List.rev |> List.map ( fun hit -> 
@@ -103,20 +104,6 @@ let main argv =
             pixels <- (u, v, shade) :: pixels
         pixels
             //bmp.SetPixel( x, y, shade )
-
-    let startTime = System.DateTime.Now
-    let mutable pixelColors = []
-    for y= 0 to yResolution-1 do
-        pixelColors <- ColorXRow y :: pixelColors
-
-    let bmp = new Bitmap( xResolution, yResolution )
-    pixelColors |> List.iter ( fun pl -> pl |> List.iter ( fun p -> let (u, v, color) = p 
-                                                                    bmp.SetPixel(u, v, color) ) )
-    bmp.Save("test.bmp" )
-
-    let endTime = System.DateTime.Now
-    let duration = (endTime - startTime).TotalSeconds
-    printfn "Not Parallel Duration: %f" duration
 
     let startTime = System.DateTime.Now
     let pixelColors = ref []

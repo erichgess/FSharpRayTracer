@@ -27,3 +27,4 @@ VectorMathFSharp/VectorMathFSharp/obj/Release/VectorMathFSharp.exe
 VectorMathFSharp/VectorMathFSharp/obj/Release/VectorMathFSharp.fsproj.FileListAbsolute.txt
 VectorMathFSharp/VectorMathFSharp/obj/Release/VectorMathFSharp.pdb
 VectorMathFSharp/UnitTestProject1/obj/Release/build.force
+*.bmp
