@@ -12,8 +12,8 @@ open System.Threading.Tasks
 open System.Timers
 
 
-let xResolution = 2048
-let yResolution = 2048
+let xResolution = 1024
+let yResolution = 1024
 
 let GetCameraRay (u: int) (v: int ) =
     let center = Vector3( 0., 0., -8. )
@@ -95,27 +95,42 @@ let main argv =
                                                                     |> List.reduce ( fun acc l -> AddColors acc l ) )
                                         |> List.reduce( fun acc color -> AddColors (SomeColor acc 0.5) color )
 
-    let bmp = new Bitmap( xResolution, yResolution )
-
     
-    let ColorXRow y =
-        for x = 0 to xResolution-1 do 
-            let shade = ColorPixel x y
-            ()
+    let ColorXRow v =
+        let mutable pixels = []
+        for u = 0 to xResolution-1 do 
+            let shade = ColorPixel u v
+            pixels <- (u, v, shade) :: pixels
+        pixels
             //bmp.SetPixel( x, y, shade )
 
     let startTime = System.DateTime.Now
+    let mutable pixelColors = []
     for y= 0 to yResolution-1 do
-        ColorXRow y
+        pixelColors <- ColorXRow y :: pixelColors
+
+    let bmp = new Bitmap( xResolution, yResolution )
+    pixelColors |> List.iter ( fun pl -> pl |> List.iter ( fun p -> let (u, v, color) = p 
+                                                                    bmp.SetPixel(u, v, color) ) )
+    bmp.Save("test.bmp" )
+
     let endTime = System.DateTime.Now
     let duration = (endTime - startTime).TotalSeconds
     printfn "Not Parallel Duration: %f" duration
 
     let startTime = System.DateTime.Now
-    let _  = Parallel.For( 0, yResolution - 1, new System.Action<int>(ColorXRow))
+    let pixelColors = ref []
+    Parallel.For( 0, yResolution - 1, new System.Action<int>( fun y -> let row = ColorXRow y
+                                                                       lock pixelColors ( fun () -> pixelColors := row :: !pixelColors )  ) )
+    
+    let bmp = new Bitmap( xResolution, yResolution )
+    !pixelColors |> List.iter ( fun pl -> pl |> List.iter ( fun p -> let (u, v, color) = p 
+                                                                     bmp.SetPixel(u, v, color) ) )
+    bmp.Save("test2.bmp" )
 
     let endTime = System.DateTime.Now
     let duration = (endTime - startTime).TotalSeconds
     printfn "Parallel Duration: %f" duration
-    bmp.Save("test.bmp" )
+
+    
     0 // return an integer exit code
