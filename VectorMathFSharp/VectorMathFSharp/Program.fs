@@ -29,12 +29,9 @@ let GetCameraRay (u: int) (v: int ) =
     let viewPoint = Vector3( xPos, yPos, 0. )
     Ray( Point3( center.X, center.Y, center.Z ), (viewPoint - center).Normalize() )
 
+
 [<EntryPoint>]
 let main argv = 
-    let SomeColor (color: Color) (shading: float) =
-        let shade x = int( shading * float(x)) 
-        Color.FromArgb(255, shade color.R, shade color.G, shade color.B )
-
     let light = new Light(Point3( 0., 8., -1. ), Color.White )
     let light2 = new Light(Point3( 0., 9., -7. ), Color.White )
     let lightSet = [ light; light2 ]
@@ -44,14 +41,16 @@ let main argv =
                     new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 10., 10., 10. ), Color.Green) :> IShape;
                     new Plane( Matrix.RotateY( 45. ) * Matrix.Translate( 0., 0., 5.) * Matrix.Scale( 10., 10., 10. ) * Matrix.RotateX( -90.0 ), Color.DarkBlue) :> IShape ]
 
-    let rec CastRay reflections ray = 
+    let rec CastRay numberOfReflections ray = 
+        // This finds all the intersections on this ray
         let intersections = scene   |> List.map( fun s -> (s.Intersection ray) ) 
                                     |> List.map (fun intersection -> 
                                                     match intersection with
                                                     | None -> None
                                                     | Some( tInter, nInter, cInter ) -> Some( tInter, tInter * ray, nInter, cInter ) )
-
-        let hit = intersections |> List.reduce ( fun acc intersection-> 
+        
+        // This finds the nearest intersection
+        let hit = intersections |> List.reduce ( fun acc intersection -> 
             match acc with
             | None -> intersection
             | Some(time, point, normal, color) ->
@@ -61,14 +60,12 @@ let main argv =
                 | _ -> acc
             )
 
-        if reflections = 0 then
+        if numberOfReflections = 0 then
             hit :: []
-        else if hit = None then
-            []
-        else
-            let time, _, normal, _ = hit.Value
-            let reflectedDirection = -ray.Direction.ReflectAbout normal
-            hit :: CastRay (reflections - 1) ( new Ray( time * ray + reflectedDirection * 0.0001, reflectedDirection ))
+        else match hit with
+             | None -> []
+             | Some( time,_, normal,_) -> let reflectedDirection = -ray.Direction.ReflectAbout normal
+                                          hit :: CastRay (numberOfReflections - 1) ( new Ray( time * ray + reflectedDirection * 0.0001, reflectedDirection ))
 
     let CalculateShading (light: Light) (ray:Ray) (nearestShape:(float*Point3*Vector3*Color) option ) =
         match nearestShape with
@@ -84,7 +81,7 @@ let main argv =
             | _ ->
                 let diffuse = n.Normalize() * surfaceToLight
                 let diffuse = if diffuse < 0. then 0. else diffuse
-                SomeColor (MultiplyColors color light.Color) diffuse
+                ScaleColor diffuse (MultiplyColors color light.Color)
    
     let ColorPixel u v =
         let ray = GetCameraRay u v
@@ -94,7 +91,7 @@ let main argv =
         | head :: tail -> intersection |> List.rev |> List.map ( fun hit -> 
                                                         lightSet |> List.map ( fun l -> CalculateShading l ray hit ) 
                                                                     |> List.reduce ( fun acc l -> AddColors acc l ) )
-                                        |> List.reduce( fun acc color -> AddColors (SomeColor acc 0.5) color )
+                                        |> List.reduce( fun acc color -> AddColors ( ScaleColor 0.5 acc) color )
 
     
     let ColorXRow v =
@@ -103,12 +100,11 @@ let main argv =
             let shade = ColorPixel u v
             pixels <- (u, v, shade) :: pixels
         pixels
-            //bmp.SetPixel( x, y, shade )
 
     let startTime = System.DateTime.Now
     let pixelColors = ref []
-    Parallel.For( 0, yResolution - 1, new System.Action<int>( fun y -> let row = ColorXRow y
-                                                                       lock pixelColors ( fun () -> pixelColors := row :: !pixelColors )  ) )
+    let _ = Parallel.For( 0, yResolution - 1, new System.Action<int>( fun y -> let row = ColorXRow y
+                                                                               lock pixelColors ( fun () -> pixelColors := row :: !pixelColors )  ) )
     
     let bmp = new Bitmap( xResolution, yResolution )
     !pixelColors |> List.iter ( fun pl -> pl |> List.iter ( fun p -> let (u, v, color) = p 

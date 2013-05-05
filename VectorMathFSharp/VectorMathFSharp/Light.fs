@@ -29,3 +29,7 @@
         let b = byteMultiplier c1.B c2.B
 
         Color.FromArgb( 255, r, g, b )
+
+    let ScaleColor (a: float) (color: Color) =
+        let boundedScale x = int( a * float(x)) 
+        Color.FromArgb(255, boundedScale color.R, boundedScale color.G, boundedScale color.B )
