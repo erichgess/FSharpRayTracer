@@ -3,19 +3,20 @@
     open Point
     open Matrix
     open Ray
+    open Material
     open Shape
     open System
     open System.Drawing
 
-    type Plane ( transformation: Matrix, color: Color ) =
-        let color = color
+    type Plane ( transformation: Matrix, material: Material ) =
+        let material = material
         let transformation = transformation
         let inverseTransformation = transformation.Invert()
         let plane = transformation * Point3( 0., 0., 0. )
         let normal = (inverseTransformation.Transpose() * Vector3( 0., 1., 0. )).Normalize()
 
         interface IShape with
-            member this.Color = color
+            member this.Material = material
 
             member this.Intersection( ray: Ray ) =
                 let transformedRay = inverseTransformation * ray
@@ -33,4 +34,4 @@
                         None
                     else
                         let shape = this :> IShape
-                        Some( time, time * ray, normal, shape.Color)
+                        Some( time, time * ray, normal, shape.Material)
