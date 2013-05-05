@@ -47,7 +47,7 @@ let main argv =
                                     |> List.map (fun intersection -> 
                                                     match intersection with
                                                     | None -> None
-                                                    | Some( tInter, nInter, cInter ) -> Some( tInter, tInter * ray, nInter, cInter ) )
+                                                    | _ -> intersection )
         
         // This finds the nearest intersection
         let hit = intersections |> List.reduce ( fun acc intersection -> 

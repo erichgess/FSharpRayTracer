@@ -18,8 +18,8 @@
         interface IShape with
             member this.Color = color
 
-            member this.Intersection ( r: Ray ) = 
-                let transformedRay = invTransformation * r
+            member this.Intersection ( ray: Ray ) = 
+                let transformedRay = invTransformation * ray
 
                 let a = transformedRay.Direction * transformedRay.Direction
                 let b = 2. * transformedRay.Origin * transformedRay.Direction
@@ -42,8 +42,8 @@
                     if tSecondHit < 0. then
                         None
                     else
-                        let pointOfIntersection = r.Origin + r.Direction * tFirstHit
+                        let pointOfIntersection = tFirstHit * ray
                         let normal = transformedRay.Origin + transformedRay.Direction * tFirstHit
                         let normal = invTransformation.Transpose() * Vector3( normal.X, normal.Y, normal.Z)
                         let shape = this :> IShape
-                        Some( tFirstHit, normal.Normalize(), shape.Color )
+                        Some( tFirstHit, pointOfIntersection, normal.Normalize(), shape.Color )

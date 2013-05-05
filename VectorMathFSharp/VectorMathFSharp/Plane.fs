@@ -17,8 +17,8 @@
         interface IShape with
             member this.Color = color
 
-            member this.Intersection( r: Ray ) =
-                let transformedRay = inverseTransformation * r
+            member this.Intersection( ray: Ray ) =
+                let transformedRay = inverseTransformation * ray
 
                 let denom = transformedRay.Direction.Y
             
@@ -26,11 +26,11 @@
                     None
                 else
                     let time = -transformedRay.Origin.Y / denom
-                    let intersectionPoint = time * transformedRay
-                    let withinSquare = intersectionPoint.X <= 1. && -1. <= intersectionPoint.X
-                                        && intersectionPoint.Z <= 1. && -1. <= intersectionPoint.Z
+                    let transformedIntersectionPoint = time * transformedRay
+                    let withinSquare = transformedIntersectionPoint.X <= 1. && -1. <= transformedIntersectionPoint.X
+                                        && transformedIntersectionPoint.Z <= 1. && -1. <= transformedIntersectionPoint.Z
                     if time <= 0. || not withinSquare then
                         None
                     else
                         let shape = this :> IShape
-                        Some( time, normal, shape.Color)
+                        Some( time, time * ray, normal, shape.Color)
