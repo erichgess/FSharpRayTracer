@@ -74,9 +74,10 @@ let main argv =
             // This small value is to prevent self intersection with the surface near the origin
             let surfaceToLightRay = new Ray( point + surfaceToLight * 0.0001, surfaceToLight )
 
+            // Check if this surface point is able to see the light
             match (TraceLightRay 0 surfaceToLightRay) with
             | Some(_) :: tail -> Color.Black
-            | _ -> light.CalculateSurfaceInteration -ray.Direction surfaceToLightRay.Direction n material
+            | _ -> material.CalculateLightInteraction -ray.Direction surfaceToLightRay.Direction n light
    
     let ColorPixel u v =
         let ray = GetCameraRay u v

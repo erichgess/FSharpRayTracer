@@ -45,11 +45,11 @@
     <Compile Include="Vector.fs" />
     <Compile Include="Point.fs" />
     <Compile Include="Ray.fs" />
+    <Compile Include="Light.fs" />
     <Compile Include="Material.fs" />
     <Compile Include="Shape.fs" />
     <Compile Include="Sphere.fs" />
     <Compile Include="Plane.fs" />
-    <Compile Include="Light.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
