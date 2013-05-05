@@ -4,10 +4,6 @@
     open System.Drawing
     open System
 
-    type Light ( position: Point3, color: Color ) =
-        member this.Position = position
-        member this.Color = color
-
     let AddColors (c1: Color) (c2: Color) =
         let byteAdder a b = 
             let sum = int(a) + int(b)
@@ -43,3 +39,14 @@
         match mDotH with
         | _ when mDotH < 0. -> 0.
         | _ -> Math.Pow( mDotH, power )
+
+    type Light ( position: Point3, color: Color ) =
+        member this.Position = position
+        member this.Color = color
+        member this.CalculateSurfaceInteration (eyeDirection: Vector3) (lightDirection: Vector3) (normal: Vector3) (surfaceColor: Color) =
+            let normal = normal.Normalize()
+            let diffuse = normal * lightDirection
+            let diffuse = if diffuse < 0. then 0. else diffuse
+            let specular = Phong eyeDirection lightDirection normal 200.
+            let specularColor = ScaleColor specular this.Color
+            AddColors specularColor (ScaleColor diffuse surfaceColor)

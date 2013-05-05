@@ -79,12 +79,7 @@ let main argv =
             match (CastRay 0 surfaceToLightRay) with
             | Some(_, _, _, _) :: tail -> Color.Black
             | _ ->
-                let normal = n.Normalize()
-                let diffuse = n.Normalize() * surfaceToLight
-                let diffuse = if diffuse < 0. then 0. else diffuse
-                let specular = Phong -ray.Direction surfaceToLightRay.Direction normal 200.
-                let specularColor = ScaleColor specular light.Color
-                AddColors specularColor (ScaleColor diffuse (MultiplyColors color light.Color))
+                light.CalculateSurfaceInteration -ray.Direction surfaceToLightRay.Direction n color
    
     let ColorPixel u v =
         let ray = GetCameraRay u v
