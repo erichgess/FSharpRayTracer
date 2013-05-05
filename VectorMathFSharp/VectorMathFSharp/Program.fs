@@ -43,12 +43,12 @@ let main argv =
                     new Plane( Matrix.RotateY( 45. ) * Matrix.Translate( 0., 0., 5.) * Matrix.Scale( 10., 10., 10. ) * Matrix.RotateX( -90.0 ), 
                         new Material( Color.DarkBlue, 0., 0.) ) :> IShape ]
 
-    let rec TraceLightRay numberOfReflections ray = 
+    let FindNearestHit (ray:Ray) (scene:IShape list) =
         // This finds all the intersections on this ray
         let intersections = scene   |> List.map( fun s -> (s.Intersection ray) )
         
         // This finds the nearest intersection
-        let hit = intersections |> List.reduce ( fun acc intersection -> 
+        intersections |> List.reduce ( fun acc intersection -> 
             match acc with
             | None -> intersection
             | Some(time, _, _, _) ->
@@ -57,6 +57,10 @@ let main argv =
                     -> intersection
                 | _ -> acc
             )
+        
+
+    let rec TraceLightRay numberOfReflections ray = 
+        let hit = FindNearestHit ray scene
 
         if numberOfReflections = 0 then
             hit :: []
