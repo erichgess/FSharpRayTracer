@@ -12,8 +12,8 @@ open System.Threading.Tasks
 open System.Timers
 
 
-let xResolution = 1024
-let yResolution = 1024
+let xResolution = 512
+let yResolution = 512
 
 let GetCameraRay (u: int) (v: int ) =
     let center = Vector3( 0., 0., -8. )
@@ -32,7 +32,7 @@ let GetCameraRay (u: int) (v: int ) =
 
 [<EntryPoint>]
 let main argv = 
-    let light = new Light(Point3( 0., 8., -1. ), Color.White )
+    let light = new Light(Point3( -4., 8., -3. ), Color.White )
     let light2 = new Light(Point3( 0., 9., -7. ), Color.White )
     let lightSet = [ light; light2 ]
     let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0. ), Color.Gray) :> IShape;
@@ -41,13 +41,9 @@ let main argv =
                     new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 10., 10., 10. ), Color.Green) :> IShape;
                     new Plane( Matrix.RotateY( 45. ) * Matrix.Translate( 0., 0., 5.) * Matrix.Scale( 10., 10., 10. ) * Matrix.RotateX( -90.0 ), Color.DarkBlue) :> IShape ]
 
-    let rec CastRay numberOfReflections ray = 
+    let rec TraceLightRay numberOfReflections ray = 
         // This finds all the intersections on this ray
-        let intersections = scene   |> List.map( fun s -> (s.Intersection ray) ) 
-                                    |> List.map (fun intersection -> 
-                                                    match intersection with
-                                                    | None -> None
-                                                    | _ -> intersection )
+        let intersections = scene   |> List.map( fun s -> (s.Intersection ray) )
         
         // This finds the nearest intersection
         let hit = intersections |> List.reduce ( fun acc intersection -> 
@@ -65,7 +61,7 @@ let main argv =
         else match hit with
              | None -> []
              | Some( time,_, normal,_) -> let reflectedDirection = -ray.Direction.ReflectAbout normal
-                                          hit :: CastRay (numberOfReflections - 1) ( new Ray( time * ray + reflectedDirection * 0.0001, reflectedDirection ))
+                                          hit :: TraceLightRay (numberOfReflections - 1) ( new Ray( time * ray + reflectedDirection * 0.0001, reflectedDirection ))
 
     let CalculateShading (light: Light) (ray:Ray) (nearestShape:(float*Point3*Vector3*Color) option ) =
         match nearestShape with
@@ -76,20 +72,18 @@ let main argv =
             // This small value is to prevent self intersection with the surface near the origin
             let surfaceToLightRay = new Ray( point + surfaceToLight * 0.0001, surfaceToLight )
 
-            match (CastRay 0 surfaceToLightRay) with
-            | Some(_, _, _, _) :: tail -> Color.Black
-            | _ ->
-                light.CalculateSurfaceInteration -ray.Direction surfaceToLightRay.Direction n color
+            match (TraceLightRay 0 surfaceToLightRay) with
+            | Some(_) :: tail -> Color.Black
+            | _ -> light.CalculateSurfaceInteration -ray.Direction surfaceToLightRay.Direction n color
    
     let ColorPixel u v =
         let ray = GetCameraRay u v
-        let intersection = CastRay 15 ray
-        match intersection with
+        let lightRayPath = TraceLightRay 15 ray |> List.rev     // Trace a ray of light from its starting point to the eye
+        match lightRayPath with
         | [] -> Color.Black
-        | head :: tail -> intersection |> List.rev |> List.map ( fun hit -> 
-                                                        lightSet |> List.map ( fun l -> CalculateShading l ray hit ) 
-                                                                    |> List.reduce ( fun acc l -> AddColors acc l ) )
-                                        |> List.reduce( fun acc color -> AddColors ( ScaleColor 0.5 acc) color )
+        | _  -> lightRayPath |> List.map ( fun hit -> lightSet |> List.map ( fun l -> CalculateShading l ray hit ) 
+                                                               |> List.reduce ( fun acc l -> AddColors acc l ) )
+                             |> List.reduce( fun acc color -> AddColors ( ScaleColor 0.5 acc) color )
 
     
     let ColorXRow v =
