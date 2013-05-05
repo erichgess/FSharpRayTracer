@@ -1,6 +1,8 @@
 ﻿module Light
     open Point
+    open Vector
     open System.Drawing
+    open System
 
     type Light ( position: Point3, color: Color ) =
         member this.Position = position
@@ -33,3 +35,11 @@
     let ScaleColor (a: float) (color: Color) =
         let boundedScale x = int( a * float(x)) 
         Color.FromArgb(255, boundedScale color.R, boundedScale color.G, boundedScale color.B )
+
+    let Phong (eyeDirection: Vector3) (lightDirection: Vector3 ) (normal: Vector3) (power: float )=
+        let h = ( eyeDirection.Normalize() + lightDirection.Normalize() ).Normalize()
+        let mDotH = normal * h
+
+        match mDotH with
+        | _ when mDotH < 0. -> 0.
+        | _ -> Math.Pow( mDotH, power )

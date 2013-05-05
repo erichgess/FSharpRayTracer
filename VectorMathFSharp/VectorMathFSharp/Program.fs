@@ -77,11 +77,14 @@ let main argv =
             let surfaceToLightRay = new Ray( point + surfaceToLight * 0.0001, surfaceToLight )
 
             match (CastRay 0 surfaceToLightRay) with
-            | Some(time, point, normal, color) :: tail -> Color.Black
+            | Some(_, _, _, _) :: tail -> Color.Black
             | _ ->
+                let normal = n.Normalize()
                 let diffuse = n.Normalize() * surfaceToLight
                 let diffuse = if diffuse < 0. then 0. else diffuse
-                ScaleColor diffuse (MultiplyColors color light.Color)
+                let specular = Phong -ray.Direction surfaceToLightRay.Direction normal 200.
+                let specularColor = ScaleColor specular light.Color
+                AddColors specularColor (ScaleColor diffuse (MultiplyColors color light.Color))
    
     let ColorPixel u v =
         let ray = GetCameraRay u v
