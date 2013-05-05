@@ -4,19 +4,20 @@
     open Vector
     open Ray
     open Shape
+    open Material
     open System
     open System.Drawing
 
     // The only thing which is needed is the transformation matrix.
     // The center of the sphere can be set with a translation matrix
     // The radius of the sphere can be set with a scaling matrix
-    type Sphere ( transformation: Matrix, color: Color ) =
-        let color = color
+    type Sphere ( transformation: Matrix, material: Material ) =
+        let material = material
         let transformation = transformation
         let invTransformation = transformation.Invert()
 
         interface IShape with
-            member this.Color = color
+            member this.Material = material
 
             member this.Intersection ( ray: Ray ) = 
                 let transformedRay = invTransformation * ray
@@ -46,4 +47,4 @@
                         let normal = transformedRay.Origin + transformedRay.Direction * tFirstHit
                         let normal = invTransformation.Transpose() * Vector3( normal.X, normal.Y, normal.Z)
                         let shape = this :> IShape
-                        Some( tFirstHit, pointOfIntersection, normal.Normalize(), shape.Color )
+                        Some( tFirstHit, pointOfIntersection, normal.Normalize(), shape.Material )

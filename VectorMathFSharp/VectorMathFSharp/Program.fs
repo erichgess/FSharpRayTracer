@@ -6,6 +6,7 @@ open Shape
 open Sphere
 open Plane
 open Light
+open Material
 open System.Drawing
 open System.Threading
 open System.Threading.Tasks
@@ -35,11 +36,12 @@ let main argv =
     let light = new Light(Point3( -4., 8., -3. ), Color.White )
     let light2 = new Light(Point3( 0., 9., -7. ), Color.White )
     let lightSet = [ light; light2 ]
-    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0. ), Color.Gray) :> IShape;
-                    new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), Color.CornflowerBlue) :> IShape;
-                    new Sphere( Matrix.Translate( 0., 3.0, 0. ) * Matrix.Scale( 2., 2., 2. ), Color.LightSeaGreen) :> IShape;
-                    new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 10., 10., 10. ), Color.Green) :> IShape;
-                    new Plane( Matrix.RotateY( 45. ) * Matrix.Translate( 0., 0., 5.) * Matrix.Scale( 10., 10., 10. ) * Matrix.RotateX( -90.0 ), Color.DarkBlue) :> IShape ]
+    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0. ), new Material(Color.Gray, 0., 0. )) :> IShape;
+                    new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), new Material( Color.CornflowerBlue, 0., 0. ) ) :> IShape;
+                    new Sphere( Matrix.Translate( 0., 3.0, 0. ) * Matrix.Scale( 2., 2., 2. ), new Material( Color.LightSeaGreen, 0., 0. ) ) :> IShape;
+                    new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 10., 10., 10. ), new Material( Color.Green, 0., 0. ) ) :> IShape;
+                    new Plane( Matrix.RotateY( 45. ) * Matrix.Translate( 0., 0., 5.) * Matrix.Scale( 10., 10., 10. ) * Matrix.RotateX( -90.0 ), 
+                        new Material( Color.DarkBlue, 0., 0.) ) :> IShape ]
 
     let rec TraceLightRay numberOfReflections ray = 
         // This finds all the intersections on this ray
@@ -49,9 +51,9 @@ let main argv =
         let hit = intersections |> List.reduce ( fun acc intersection -> 
             match acc with
             | None -> intersection
-            | Some(time, point, normal, color) ->
+            | Some(time, _, _, _) ->
                 match intersection with
-                | Some(intersectionTime, point, intersectionNormal, intersectionColor) when intersectionTime < time 
+                | Some(intersectionTime, _, _, _) when intersectionTime < time 
                     -> intersection
                 | _ -> acc
             )
@@ -63,18 +65,19 @@ let main argv =
              | Some( time,_, normal,_) -> let reflectedDirection = -ray.Direction.ReflectAbout normal
                                           hit :: TraceLightRay (numberOfReflections - 1) ( new Ray( time * ray + reflectedDirection * 0.0001, reflectedDirection ))
 
-    let CalculateShading (light: Light) (ray:Ray) (nearestShape:(float*Point3*Vector3*Color) option ) =
+    let CalculateShading (light: Light) (ray:Ray) (nearestShape:(float*Point3*Vector3*Material) option ) =
         match nearestShape with
         | None -> Color.Black
-        | Some(time, point, n, color) -> 
+        | Some(time, point, n, material) -> 
             let surfaceToLight = ( light.Position - point ).Normalize()
 
             // This small value is to prevent self intersection with the surface near the origin
             let surfaceToLightRay = new Ray( point + surfaceToLight * 0.0001, surfaceToLight )
 
+            // Check if this surface point is able to see the light
             match (TraceLightRay 0 surfaceToLightRay) with
             | Some(_) :: tail -> Color.Black
-            | _ -> light.CalculateSurfaceInteration -ray.Direction surfaceToLightRay.Direction n color
+            | _ -> material.CalculateLightInteraction -ray.Direction surfaceToLightRay.Direction n light
    
     let ColorPixel u v =
         let ray = GetCameraRay u v
