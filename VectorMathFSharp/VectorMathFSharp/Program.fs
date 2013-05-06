@@ -57,7 +57,35 @@ let main argv =
                     -> intersection
                 | _ -> acc
             )
+    
+    let rec TraceLightRayRefactor numberOfReflections ray =
+        // Find the nearest intersection
+        let hit = FindNearestHit ray scene
         
+        match hit with
+        | None -> Color.Black
+        | Some(time, point, normal, material) -> 
+                    // Calculate the lighting at this point
+                    let surfaceToLight = ( light.Position - point ).Normalize()
+                    let surfaceToLightRay = new Ray( point + surfaceToLight * 0.0001, surfaceToLight )
+                    let lightingColor = material.CalculateLightInteraction -ray.Direction surfaceToLight normal light2
+
+                    // If numberOfReflections > 0 then
+                    if numberOfReflections > 0 then
+                        // reflect the ray about the normal
+                        let reflectedDirection = -ray.Direction.ReflectAbout normal
+                        // Call tracelightray
+                        let reflectionColor = TraceLightRayRefactor (numberOfReflections-1) (new Ray( time * ray + reflectedDirection * 0.0001, reflectedDirection ))
+                        // Add the reflected ray color to the surface color
+                        let reflectionColor = ScaleColor material.Reflectivity reflectionColor
+
+                        AddColors reflectionColor lightingColor
+
+                        // refract the ray about the normal
+                        // call tracelightray
+                        // add the refraction color to the surface color
+                    else
+                        lightingColor
 
     let rec TraceLightRay numberOfReflections ray = 
         let hit = FindNearestHit ray scene
