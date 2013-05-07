@@ -36,12 +36,12 @@ let main argv =
     let light = new Light(Point3( -4., 8., -3. ), Color.White )
     let light2 = new Light(Point3( 0., 9., -7. ), Color.White )
     let lightSet = [ light; light2 ]
-    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0. ), new Material(Color.Gray, 0., 0. )) :> IShape;
-                    new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), new Material( Color.CornflowerBlue, 0., 0. ) ) :> IShape;
-                    new Sphere( Matrix.Translate( 0., 3.0, 0. ) * Matrix.Scale( 2., 2., 2. ), new Material( Color.LightSeaGreen, 0., 0. ) ) :> IShape;
-                    new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 10., 10., 10. ), new Material( Color.Green, 0., 0. ) ) :> IShape;
+    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0. ), new Material(Color.Gray, 0.5, 0. )) :> IShape;
+                    new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), new Material( Color.CornflowerBlue, 0.5, 0. ) ) :> IShape;
+                    new Sphere( Matrix.Translate( 0., 3.0, 0. ) * Matrix.Scale( 2., 2., 2. ), new Material( Color.LightSeaGreen, 0.5, 0. ) ) :> IShape;
+                    new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 10., 10., 10. ), new Material( Color.Green, 0.2, 0. ) ) :> IShape;
                     new Plane( Matrix.RotateY( 45. ) * Matrix.Translate( 0., 0., 5.) * Matrix.Scale( 10., 10., 10. ) * Matrix.RotateX( -90.0 ), 
-                        new Material( Color.DarkBlue, 0., 0.) ) :> IShape ]
+                        new Material( Color.DarkBlue, 1., 0.) ) :> IShape ]
 
     let FindNearestHit (ray:Ray) (scene:IShape list) =
         // This finds all the intersections on this ray
@@ -113,12 +113,7 @@ let main argv =
    
     let ColorPixel u v =
         let ray = GetCameraRay u v
-        let lightRayPath = TraceLightRay 15 ray |> List.rev     // Trace a ray of light from its starting point to the eye
-        match lightRayPath with
-        | [] -> Color.Black
-        | _  -> lightRayPath |> List.map ( fun hit -> lightSet |> List.map ( fun l -> CalculateShading l ray hit ) 
-                                                               |> List.reduce ( fun acc l -> AddColors acc l ) )
-                             |> List.reduce( fun acc color -> AddColors ( ScaleColor 0.5 acc) color )
+        TraceLightRayRefactor 15 ray
 
     
     let ColorXRow v =
