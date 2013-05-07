@@ -36,7 +36,12 @@ let main argv =
     let light = new Light(Point3( -4., 8., -3. ), Color.White )
     let light2 = new Light(Point3( 0., -9., -7. ), Color.White )
     let lightSet = [ light; light2 ]
-    let scene = [   new Sphere(Matrix.Scale( 4., 4.0, 4. ), new Material(Color.Gray, 1., 1.0 )) :> IShape]
+    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0. ), new Material(Color.Gray, 0.5, 0. )) :> IShape;
+                    new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), new Material( Color.CornflowerBlue, 0.5, 0. ) ) :> IShape;
+                    new Sphere( Matrix.Translate( 0., 3.0, 0. ) * Matrix.Scale( 2., 2., 2. ), new Material( Color.LightSeaGreen, 0.5, 0. ) ) :> IShape;
+                    new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 10., 10., 10. ), new Material( Color.Green, 0.2, 0. ) ) :> IShape;
+                    new Plane( Matrix.RotateY( 45. ) * Matrix.Translate( 0., 0., 5.) * Matrix.Scale( 10., 10., 10. ) * Matrix.RotateX( -90.0 ), 
+                        new Material( Color.DarkBlue, 1., 0.) ) :> IShape ]
 
     let FindNearestHit (ray:Ray) (scene:IShape list) =
         // This finds all the intersections on this ray
@@ -62,8 +67,6 @@ let main argv =
     let rec TraceLightRayRefactor numberOfReflections ray =
         // Find the nearest intersection
         let hit = FindNearestHit ray scene
-        
-        printfn "%s" (ray.Print())
 
         match hit with
         | None -> Color.Black
@@ -78,7 +81,7 @@ let main argv =
                         // reflect the ray about the normal
                         let reflectedDirection = -ray.Direction.ReflectAbout normal
                         // Call tracelightray
-                        let reflectionColor = Color.Black //TraceLightRayRefactor (numberOfReflections-1) (new Ray( time * ray + reflectedDirection * 0.0001, reflectedDirection ))
+                        let reflectionColor = TraceLightRayRefactor (numberOfReflections-1) (new Ray( time * ray + reflectedDirection * 0.0001, reflectedDirection ))
                         // Add the reflected ray color to the surface color
                         let reflectionColor = ScaleColor material.Reflectivity reflectionColor
 
@@ -94,7 +97,7 @@ let main argv =
                             // call tracelightray
                             let cos_theta = System.Math.Sqrt cos_theta_sqr
                             let refractedDir = eyeDir * ratio + normal * ( ratio * mDotR - cos_theta)
-                            let refractedRay = new Ray( point + refractedDir * 0.01, refractedDir )
+                            let refractedRay = new Ray( point + refractedDir * 0.0001, refractedDir )
                             let refractedColor = TraceLightRayRefactor (numberOfReflections - 1) refractedRay
                             let refractedColor = ScaleColor 0.9 refractedColor
 
@@ -131,7 +134,7 @@ let main argv =
    
     let ColorPixel u v =
         let ray = GetCameraRay u v
-        TraceLightRayRefactor 5 ray
+        TraceLightRayRefactor 15 ray
 
     
     let ColorXRow v =
@@ -141,25 +144,23 @@ let main argv =
             pixels <- (u, v, shade) :: pixels
         pixels
 
-    let color = ColorPixel 0 0
+    let startTime = System.DateTime.Now
+    let pixelColors = ref []
+//    let _ = Parallel.For( 0, yResolution - 1, new System.Action<int>( fun y -> let row = ColorXRow y
+//                                                                               lock pixelColors ( fun () -> pixelColors := row :: !pixelColors )  ) )
+    
+    for y = 0 to yResolution-1 do
+        let row = ColorXRow y
+        pixelColors := row :: !pixelColors
 
-//    let startTime = System.DateTime.Now
-//    let pixelColors = ref []
-////    let _ = Parallel.For( 0, yResolution - 1, new System.Action<int>( fun y -> let row = ColorXRow y
-////                                                                               lock pixelColors ( fun () -> pixelColors := row :: !pixelColors )  ) )
-//    
-//    for y = 0 to yResolution-1 do
-//        let row = ColorXRow y
-//        pixelColors := row :: !pixelColors
-//
-//    let bmp = new Bitmap( xResolution, yResolution )
-//    !pixelColors |> List.iter ( fun pl -> pl |> List.iter ( fun p -> let (u, v, color) = p 
-//                                                                     bmp.SetPixel(u, v, color) ) )
-//    bmp.Save("test2.bmp" )
+    let bmp = new Bitmap( xResolution, yResolution )
+    !pixelColors |> List.iter ( fun pl -> pl |> List.iter ( fun p -> let (u, v, color) = p 
+                                                                     bmp.SetPixel(u, v, color) ) )
+    bmp.Save("test2.bmp" )
 
-//    let endTime = System.DateTime.Now
-//    let duration = (endTime - startTime).TotalSeconds
-//    printfn "Parallel Duration: %f" duration
+    let endTime = System.DateTime.Now
+    let duration = (endTime - startTime).TotalSeconds
+    printfn "Parallel Duration: %f" duration
 
     
     0 // return an integer exit code
