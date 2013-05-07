@@ -28,7 +28,9 @@
         Color.FromArgb( 255, r, g, b )
 
     let ScaleColor (a: float) (color: Color) =
-        let boundedScale x = int( a * float(x)) 
+        let boundedScale x = 
+                let product = int( a * float(x))
+                if product > 255 then 255 else if product < 0 then 0 else product
         Color.FromArgb(255, boundedScale color.R, boundedScale color.G, boundedScale color.B )
 
     type Light ( position: Point3, color: Color ) =
