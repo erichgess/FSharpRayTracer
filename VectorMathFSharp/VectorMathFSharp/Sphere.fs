@@ -39,12 +39,13 @@
                     let t1 = c / q
 
                     let (tFirstHit, tSecondHit) = if t0 < t1 then (t0, t1) else (t1, t0)
+                    let tHit = if 0. <= tFirstHit then tFirstHit else tSecondHit
 
-                    if tSecondHit < 0. then
+                    if tHit < 0. then
                         None
                     else
-                        let pointOfIntersection = tFirstHit * ray
-                        let normal = transformedRay.Origin + transformedRay.Direction * tFirstHit
+                        let pointOfIntersection = tHit * ray
+                        let normal = transformedRay.Origin + transformedRay.Direction * tHit
                         let normal = invTransformation.Transpose() * Vector3( normal.X, normal.Y, normal.Z)
                         let shape = this :> IShape
-                        Some( tFirstHit, pointOfIntersection, normal.Normalize(), shape.Material )
+                        Some( tHit, pointOfIntersection, normal.Normalize(), shape.Material )
