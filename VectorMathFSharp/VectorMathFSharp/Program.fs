@@ -88,23 +88,14 @@ let main argv =
                         let lightingColor = AddColors reflectionColor lightingColor
 
                         // refract the ray about the normal
-                        let ratio = 1.0/material.RefractionIndex
                         let eyeDir = ray.Direction.Normalize()
-                        let mDotR = -eyeDir * normal
-                        let cos_theta_sqr = 1. - ratio * ratio * ( 1. - mDotR*mDotR)
-
-                        if material.RefractionIndex > 0. && cos_theta_sqr >= 0. then
-                            // call tracelightray
-                            let cos_theta = System.Math.Sqrt cos_theta_sqr
-                            let refractedDir = eyeDir * ratio + normal * ( ratio * mDotR - cos_theta)
-                            let refractedRay = new Ray( point + refractedDir * 0.0001, refractedDir )
-                            let refractedColor = TraceLightRayRefactor (numberOfReflections - 1) refractedRay
-                            let refractedColor = ScaleColor 0.7 refractedColor
-
-                            // add the refraction color to the surface color
-                            AddColors refractedColor lightingColor
-                        else
-                            lightingColor
+                        let refractedDirection = eyeDir.RefractThrough( normal, 1.0, material.RefractionIndex )
+                        match refractedDirection with
+                                            | Some(refractedVector) ->  let refractedRay = new Ray( point + refractedVector * 0.0001, refractedVector )
+                                                                        let refractedColor = TraceLightRayRefactor (numberOfReflections - 1) refractedRay
+                                                                        let refractedColor = ScaleColor 0.7 refractedColor
+                                                                        AddColors refractedColor lightingColor
+                                            | None -> lightingColor
                     else
                         lightingColor
 
