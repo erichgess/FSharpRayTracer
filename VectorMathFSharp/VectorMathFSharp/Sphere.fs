@@ -47,7 +47,9 @@
                         let pointOfIntersection = tHit * ray
                         let normal = transformedRay.Origin + transformedRay.Direction * tHit
                         let normal = invTransformation.Transpose() * Vector3( normal.X, normal.Y, normal.Z)
-                        let normal = if tFirstHit < 0. then -normal else normal
+
+                        let isEntering = if tFirstHit > 0. then true else false
+                        let normal = if isEntering then normal else -normal
 
                         let shape = this :> IShape
-                        Some( tHit, pointOfIntersection, normal.Normalize(), shape.Material )
+                        Some( tHit, pointOfIntersection, normal.Normalize(), shape.Material, isEntering )

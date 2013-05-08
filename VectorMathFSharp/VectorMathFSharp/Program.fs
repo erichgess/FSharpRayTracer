@@ -34,9 +34,9 @@ let GetCameraRay (u: int) (v: int ) =
 [<EntryPoint>]
 let main argv = 
     let light = new Light(Point3( -4., 8., -3. ), Color.White )
-    let light2 = new Light(Point3( 0., -9., -7. ), Color.White )
+    let light2 = new Light(Point3( 1., 2., -7. ), Color.Aquamarine )
     let lightSet = [ light; light2 ]
-    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0. ), new Material(Color.DarkGray, 0.4, 1.52 )) :> IShape;
+    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0. ), new Material(Color.DarkGray, 0.1, 1.01 )) :> IShape;
                     new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), new Material( Color.CornflowerBlue, 0.2, 0. ) ) :> IShape;
                     new Sphere( Matrix.Translate( 0., 3.0, 0. ) * Matrix.Scale( 2., 2., 2. ), new Material( Color.LightSeaGreen, 0.5, 0. ) ) :> IShape;
                     new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 10., 10., 10. ), new Material( Color.Green, 0.2, 0. ) ) :> IShape;
@@ -48,7 +48,7 @@ let main argv =
         let intersections = scene   |> List.map( fun s -> (s.Intersection ray) ) 
                                     |> List.filter ( fun h -> match h with
                                                               | None -> true
-                                                              | Some(time,_,_,_) -> 0. < time )
+                                                              | Some(time,_,_,_,_) -> 0. < time )
         
         // This finds the nearest intersection
         if intersections.Length = 0 then
@@ -57,9 +57,9 @@ let main argv =
             intersections |> List.reduce ( fun acc intersection -> 
                 match acc with
                 | None -> intersection
-                | Some(time, _, _, _) ->
+                | Some(time, _, _, _,_) ->
                     match intersection with
-                    | Some(intersectionTime, _, _, _) when intersectionTime < time
+                    | Some(intersectionTime, _, _, _,_) when intersectionTime < time
                         -> intersection
                     | _ -> acc
                 )
@@ -70,11 +70,18 @@ let main argv =
 
         match hit with
         | None -> Color.Black
-        | Some(time, point, normal, material) -> 
+        | Some(time, point, normal, material, isEntering) -> 
                     // Calculate the lighting at this point
-                    let surfaceToLight = ( light.Position - point ).Normalize()
-                    let surfaceToLightRay = new Ray( point + surfaceToLight * 0.0001, surfaceToLight )
-                    let lightingColor = material.CalculateLightInteraction -ray.Direction surfaceToLight normal light2
+                    
+
+                    let lightingColor = lightSet    |> List.map ( fun light -> 
+                                                                    let surfaceToLight = ( light.Position - point ).Normalize()
+                                                                    let surfaceToLightRay = new Ray( point + surfaceToLight * 0.0001, surfaceToLight )
+
+                                                                    match FindNearestHit surfaceToLightRay scene with
+                                                                    | None -> material.CalculateLightInteraction -ray.Direction surfaceToLight normal light2
+                                                                    | _ -> Color.Black )
+                                                    |> List.reduce ( fun acc color -> AddColors acc color )
 
                     // If numberOfReflections > 0 then
                     if numberOfReflections > 0 then
@@ -89,13 +96,14 @@ let main argv =
 
                         // refract the ray about the normal
                         let eyeDir = ray.Direction.Normalize()
-                        let refractedDirection = eyeDir.RefractThrough( normal, 1.0, material.RefractionIndex )
+                        let (firstMediumIndex, secondMediumIndex) = if isEntering then (1.0, material.RefractionIndex) else (material.RefractionIndex, 1.0 )
+                        let refractedDirection = eyeDir.RefractThrough( normal, firstMediumIndex, secondMediumIndex )
                         match refractedDirection with
-                                            | Some(refractedVector) ->  let refractedRay = new Ray( point + refractedVector * 0.0001, refractedVector )
-                                                                        let refractedColor = TraceLightRayRefactor (numberOfReflections - 1) refractedRay
-                                                                        let refractedColor = ScaleColor 0.7 refractedColor
-                                                                        AddColors refractedColor lightingColor
-                                            | None -> lightingColor
+                        | None -> lightingColor
+                        | Some(refractedVector) ->  let refractedRay = new Ray( point + refractedVector * 0.0001, refractedVector )
+                                                    let refractedColor = TraceLightRayRefactor (numberOfReflections - 1) refractedRay
+                                                    let refractedColor = ScaleColor 0.7 refractedColor
+                                                    AddColors refractedColor lightingColor
                     else
                         lightingColor
 
@@ -106,8 +114,8 @@ let main argv =
             hit :: []
         else match hit with
              | None -> []
-             | Some( time,_, normal,_) -> let reflectedDirection = -ray.Direction.ReflectAbout normal
-                                          hit :: TraceLightRay (numberOfReflections - 1) ( new Ray( time * ray + reflectedDirection * 0.0001, reflectedDirection ))
+             | Some( time,_, normal,_,_) -> let reflectedDirection = -ray.Direction.ReflectAbout normal
+                                            hit :: TraceLightRay (numberOfReflections - 1) ( new Ray( time * ray + reflectedDirection * 0.0001, reflectedDirection ))
 
     let CalculateShading (light: Light) (ray:Ray) (nearestShape:(float*Point3*Vector3*Material) option ) =
         match nearestShape with
