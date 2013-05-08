@@ -36,12 +36,12 @@ let main argv =
     let light = new Light(Point3( -4., 8., -3. ), Color.White )
     let light2 = new Light(Point3( 0., -9., -7. ), Color.White )
     let lightSet = [ light; light2 ]
-    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0. ), new Material(Color.Gray, 0.5, 0. )) :> IShape;
-                    new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), new Material( Color.CornflowerBlue, 0.5, 0. ) ) :> IShape;
+    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0. ), new Material(Color.DarkGray, 0.4, 1.52 )) :> IShape;
+                    new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), new Material( Color.CornflowerBlue, 0.2, 0. ) ) :> IShape;
                     new Sphere( Matrix.Translate( 0., 3.0, 0. ) * Matrix.Scale( 2., 2., 2. ), new Material( Color.LightSeaGreen, 0.5, 0. ) ) :> IShape;
                     new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 10., 10., 10. ), new Material( Color.Green, 0.2, 0. ) ) :> IShape;
-                    new Plane( Matrix.RotateY( 45. ) * Matrix.Translate( 0., 0., 5.) * Matrix.Scale( 10., 10., 10. ) * Matrix.RotateX( -90.0 ), 
-                        new Material( Color.DarkBlue, 1., 0.) ) :> IShape ]
+                    new Plane(  Matrix.RotateY(45.0) * Matrix.Translate( 0., 0., 5.) * Matrix.Scale( 5., 5., 5. ) * Matrix.RotateX( -90.0 ), 
+                        new Material( Color.Blue, 1., 0.) ) :> IShape ]
 
     let FindNearestHit (ray:Ray) (scene:IShape list) =
         // This finds all the intersections on this ray
@@ -90,7 +90,7 @@ let main argv =
                         // refract the ray about the normal
                         let ratio = 1.0/material.RefractionIndex
                         let eyeDir = ray.Direction.Normalize()
-                        let mDotR = eyeDir * normal
+                        let mDotR = -eyeDir * normal
                         let cos_theta_sqr = 1. - ratio * ratio * ( 1. - mDotR*mDotR)
 
                         if material.RefractionIndex > 0. && cos_theta_sqr >= 0. then
@@ -99,10 +99,10 @@ let main argv =
                             let refractedDir = eyeDir * ratio + normal * ( ratio * mDotR - cos_theta)
                             let refractedRay = new Ray( point + refractedDir * 0.0001, refractedDir )
                             let refractedColor = TraceLightRayRefactor (numberOfReflections - 1) refractedRay
-                            let refractedColor = ScaleColor 0.9 refractedColor
+                            let refractedColor = ScaleColor 0.7 refractedColor
 
                             // add the refraction color to the surface color
-                            refractedColor
+                            AddColors refractedColor lightingColor
                         else
                             lightingColor
                     else
@@ -134,7 +134,7 @@ let main argv =
    
     let ColorPixel u v =
         let ray = GetCameraRay u v
-        TraceLightRayRefactor 15 ray
+        TraceLightRayRefactor 5 ray
 
     
     let ColorXRow v =
@@ -146,12 +146,11 @@ let main argv =
 
     let startTime = System.DateTime.Now
     let pixelColors = ref []
-//    let _ = Parallel.For( 0, yResolution - 1, new System.Action<int>( fun y -> let row = ColorXRow y
-//                                                                               lock pixelColors ( fun () -> pixelColors := row :: !pixelColors )  ) )
+    let _ = Parallel.For( 0, yResolution - 1, new System.Action<int>( fun y -> let row = ColorXRow y
+                                                                               lock pixelColors ( fun () -> pixelColors := row :: !pixelColors )  ) )
     
-    for y = 0 to yResolution-1 do
-        let row = ColorXRow y
-        pixelColors := row :: !pixelColors
+//    for y = 0 to yResolution-1 do
+//        pixelColors := ColorXRow y :: !pixelColors
 
     let bmp = new Bitmap( xResolution, yResolution )
     !pixelColors |> List.iter ( fun pl -> pl |> List.iter ( fun p -> let (u, v, color) = p 
