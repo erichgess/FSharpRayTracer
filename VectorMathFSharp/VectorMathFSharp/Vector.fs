@@ -47,6 +47,20 @@
         member this.ReflectAbout( n: Vector3 ) =
             2. * ( n * this ) * n - this
 
+        member this.RefractThrough ( normal: Vector3, firstMediumRefractiveIndex: float, secondMediumRefractiveIndex: float ) =
+            // refract the ray about the normal
+            let ratio = firstMediumRefractiveIndex/secondMediumRefractiveIndex
+            let mDotR = -this * normal
+            let cos_theta_sqr = 1. - ratio * ratio * ( 1. - mDotR*mDotR)
+
+            // Cos theta squared is <= 0 then there is total internal reflection, so don't bother
+            // with calculating the refraction vector
+            if cos_theta_sqr > 0. then
+                let cos_theta = System.Math.Sqrt cos_theta_sqr
+                Some(this * ratio + normal * ( ratio * mDotR - cos_theta))
+            else
+                None
+
         member this.Print() =
             sprintf "%f, %f, %f" x y z
 

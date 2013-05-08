@@ -34,4 +34,4 @@
                         None
                     else
                         let shape = this :> IShape
-                        Some( time, time * ray, normal, shape.Material)
+                        Some( time, time * ray, normal, shape.Material, true)
