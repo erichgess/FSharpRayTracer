@@ -65,7 +65,7 @@ let main argv =
                     | _ -> acc
                 )
     
-    let rec TraceLightRayRefactor numberOfReflections ray =
+    let rec TraceLightRay numberOfReflections ray =
         // Find the nearest intersection
         let hit = FindNearestHit ray scene
 
@@ -84,7 +84,7 @@ let main argv =
                                                                     | _ -> Color.init Color.Black )
                                                     |> List.reduce ( fun acc color -> acc + color )
 
-                    let TraceLightBounce = TraceLightRayRefactor (numberOfReflections-1)
+                    let TraceLightBounce = TraceLightRay (numberOfReflections-1)
                     let reflectionColor =   if numberOfReflections > 0 then
                                                 let reflectedDirection = -ray.Direction.ReflectAbout normal
                                                 let reflectRay = new Ray( time * ray + reflectedDirection * 0.0001, reflectedDirection )
@@ -110,7 +110,7 @@ let main argv =
    
     let ColorPixel u v =
         let ray = GetCameraRay u v
-        TraceLightRayRefactor 5 ray
+        TraceLightRay 5 ray
 
     
     let ColorXRow v =
