@@ -84,29 +84,29 @@ let main argv =
                                                                     | _ -> Color.init Color.Black )
                                                     |> List.reduce ( fun acc color -> acc + color )
 
-                    // If numberOfReflections > 0 then
-                    if numberOfReflections > 0 then
-                        // reflect the ray about the normal
-                        let reflectedDirection = -ray.Direction.ReflectAbout normal
-                        // Call tracelightray
-                        let reflectionColor = TraceLightRayRefactor (numberOfReflections-1) (new Ray( time * ray + reflectedDirection * 0.0001, reflectedDirection ))
-                        // Add the reflected ray color to the surface color
-                        let reflectionColor = material.Reflectivity * reflectionColor
+                    let TraceLightBounce = TraceLightRayRefactor (numberOfReflections-1)
+                    let reflectionColor =   if numberOfReflections > 0 then
+                                                let reflectedDirection = -ray.Direction.ReflectAbout normal
+                                                let reflectRay = new Ray( time * ray + reflectedDirection * 0.0001, reflectedDirection )
+                                                let reflectionColor = TraceLightBounce reflectRay
+                                                material.Reflectivity * reflectionColor
+                                            else
+                                                Color.init Color.Black
 
-                        let lightingColor = reflectionColor + lightingColor
-
-                        // refract the ray about the normal
-                        let eyeDir = ray.Direction.Normalize()
-                        let (firstMediumIndex, secondMediumIndex) = if isEntering then (1.0, material.RefractionIndex) else (material.RefractionIndex, 1.0 )
-                        let refractedDirection = eyeDir.RefractThrough( normal, firstMediumIndex, secondMediumIndex )
-                        match refractedDirection with
-                        | None -> lightingColor
-                        | Some(refractedVector) ->  let refractedRay = new Ray( point + refractedVector * 0.0001, refractedVector )
-                                                    let refractedColor = TraceLightRayRefactor (numberOfReflections - 1) refractedRay
-                                                    let refractedColor = 0.7 * refractedColor
-                                                    refractedColor + lightingColor
-                    else
-                        lightingColor
+                    let refractionColor =   if numberOfReflections > 0 then
+                                                let eyeDir = ray.Direction.Normalize()
+                                                let (firstMediumIndex, secondMediumIndex) = if isEntering then (1.0, material.RefractionIndex) else (material.RefractionIndex, 1.0 )
+                                                let refractedDirection = eyeDir.RefractThrough( normal, firstMediumIndex, secondMediumIndex )
+                                                match refractedDirection with
+                                                | None -> Color.init Color.Black
+                                                | Some(refractedVector) ->  let refractedRay = new Ray( point + refractedVector * 0.0001, refractedVector )
+                                                                            let refractedColor = TraceLightBounce refractedRay
+                                                                            let refractedColor = 0.7 * refractedColor
+                                                                            refractedColor
+                                            else
+                                                Color.init Color.Black
+                    
+                    lightingColor + reflectionColor + refractionColor
 
     let rec TraceLightRay numberOfReflections ray = 
         let hit = FindNearestHit ray scene
