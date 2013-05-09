@@ -5,9 +5,9 @@ open Vector
 open Shape
 open Sphere
 open Plane
+open Color
 open Light
 open Material
-open System.Drawing
 open System.Threading
 open System.Threading.Tasks
 open System.Timers
@@ -33,17 +33,19 @@ let GetCameraRay (u: int) (v: int ) =
 
 [<EntryPoint>]
 let main argv = 
-    let light = new Light(Point3( -4., 8., -3. ), Color.White )
-    let light2 = new Light(Point3( 1., 2., -7. ), Color.Aquamarine )
-    let lightSet = [ light; light2 ]
-    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0. ), new Material(Color.DarkGray, 0.1, 1.01 )) :> IShape;
-                    new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), new Material( Color.CornflowerBlue, 0.2, 0. ) ) :> IShape;
-                    new Sphere( Matrix.Translate( 0., 3.0, 0. ) * Matrix.Scale( 2., 2., 2. ), new Material( Color.LightSeaGreen, 0.5, 0. ) ) :> IShape;
-                    new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 10., 10., 10. ), new Material( Color.Green, 0.2, 0. ) ) :> IShape;
+    let colors = Color.ByName
+    let black = colors.["Black"]
+    let l = new Light(Point3( -4., 8., -3. ), colors.["White"] )
+    let l2 = new Light(Point3( 1., 2., -7. ), colors.["Aquamarine"] )
+    let lightSet = [ l; l2 ]
+    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0. ), new Material(new Color(0.1, 0.1, 0.1 ), colors.["White"], 0.4, 1.01 )) :> IShape;
+                    new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), new Material( colors.["CornflowerBlue"], colors.["CornflowerBlue"], 0.2, 0. ) ) :> IShape;
+                    new Sphere( Matrix.Translate( 0., 3.0, 0. ) * Matrix.Scale( 2., 2., 2. ), new Material( colors.["LightSeaGreen"], colors.["LightSeaGreen"], 0.5, 0. ) ) :> IShape;
+                    new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 10., 10., 10. ), new Material( colors.["Green"], colors.["Green"], 0.2, 0. ) ) :> IShape;
                     new Plane(  Matrix.RotateY(45.0) * Matrix.Translate( 0., 0., 5.) * Matrix.Scale( 5., 5., 5. ) * Matrix.RotateX( -90.0 ), 
-                        new Material( Color.Blue, 1., 0.) ) :> IShape ]
+                        new Material( colors.["Blue"], colors.["Blue"], 1., 0.) ) :> IShape ]
 
-    let FindNearestHit (ray:Ray) (scene:IShape list) =
+    let FindNearestHit (scene:IShape list) (ray:Ray) =
         // This finds all the intersections on this ray
         let intersections = scene   |> List.map( fun s -> (s.Intersection ray) ) 
                                     |> List.filter ( fun h -> match h with
@@ -64,76 +66,40 @@ let main argv =
                     | _ -> acc
                 )
     
-    let rec TraceLightRayRefactor numberOfReflections ray =
+    let rec TraceLightRay numberOfReflections ray =
         // Find the nearest intersection
-        let hit = FindNearestHit ray scene
+        let FindNearestHitInScene = FindNearestHit scene
+        let hit = FindNearestHitInScene ray
 
         match hit with
-        | None -> Color.Black
+        | None -> black
         | Some(time, point, normal, material, isEntering) -> 
-                    // Calculate the lighting at this point
-                    
-
                     let lightingColor = lightSet    |> List.map ( fun light -> 
                                                                     let surfaceToLight = ( light.Position - point ).Normalize()
                                                                     let surfaceToLightRay = new Ray( point + surfaceToLight * 0.0001, surfaceToLight )
 
-                                                                    match FindNearestHit surfaceToLightRay scene with
-                                                                    | None -> material.CalculateLightInteraction -ray.Direction surfaceToLight normal light2
-                                                                    | _ -> Color.Black )
-                                                    |> List.reduce ( fun acc color -> AddColors acc color )
+                                                                    match FindNearestHitInScene surfaceToLightRay with
+                                                                    | None -> material.CalculateLightInteraction -ray.Direction surfaceToLight normal light
+                                                                    | _ -> black)
+                                                    |> List.reduce ( fun acc color -> acc + color )
 
-                    // If numberOfReflections > 0 then
+                    let lightRays = [ (material.ReflectRay( time, ray, normal ), material.Reflectivity) ]
+
+                    let (firstMediumIndex, secondMediumIndex) = if isEntering then (1.0, material.RefractionIndex) else (material.RefractionIndex, 1.0 )
+                    let lightRays = match material.RefractRay( time, ray, normal, isEntering) with
+                                    | Some(r) -> (r, 0.7) :: lightRays
+                                    | _ -> lightRays
+
                     if numberOfReflections > 0 then
-                        // reflect the ray about the normal
-                        let reflectedDirection = -ray.Direction.ReflectAbout normal
-                        // Call tracelightray
-                        let reflectionColor = TraceLightRayRefactor (numberOfReflections-1) (new Ray( time * ray + reflectedDirection * 0.0001, reflectedDirection ))
-                        // Add the reflected ray color to the surface color
-                        let reflectionColor = ScaleColor material.Reflectivity reflectionColor
-
-                        let lightingColor = AddColors reflectionColor lightingColor
-
-                        // refract the ray about the normal
-                        let eyeDir = ray.Direction.Normalize()
-                        let (firstMediumIndex, secondMediumIndex) = if isEntering then (1.0, material.RefractionIndex) else (material.RefractionIndex, 1.0 )
-                        let refractedDirection = eyeDir.RefractThrough( normal, firstMediumIndex, secondMediumIndex )
-                        match refractedDirection with
-                        | None -> lightingColor
-                        | Some(refractedVector) ->  let refractedRay = new Ray( point + refractedVector * 0.0001, refractedVector )
-                                                    let refractedColor = TraceLightRayRefactor (numberOfReflections - 1) refractedRay
-                                                    let refractedColor = ScaleColor 0.7 refractedColor
-                                                    AddColors refractedColor lightingColor
+                        let opticalColor =  lightRays   |> List.map( fun (ray, influence) -> influence * TraceLightRay (numberOfReflections-1) ray) 
+                                                        |> List.reduce( fun acc color -> acc + color )
+                        opticalColor + lightingColor
                     else
-                        lightingColor
-
-    let rec TraceLightRay numberOfReflections ray = 
-        let hit = FindNearestHit ray scene
-
-        if numberOfReflections = 0 then
-            hit :: []
-        else match hit with
-             | None -> []
-             | Some( time,_, normal,_,_) -> let reflectedDirection = -ray.Direction.ReflectAbout normal
-                                            hit :: TraceLightRay (numberOfReflections - 1) ( new Ray( time * ray + reflectedDirection * 0.0001, reflectedDirection ))
-
-    let CalculateShading (light: Light) (ray:Ray) (nearestShape:(float*Point3*Vector3*Material) option ) =
-        match nearestShape with
-        | None -> Color.Black
-        | Some(time, point, n, material) -> 
-            let surfaceToLight = ( light.Position - point ).Normalize()
-
-            // This small value is to prevent self intersection with the surface near the origin
-            let surfaceToLightRay = new Ray( point + surfaceToLight * 0.0001, surfaceToLight )
-
-            // Check if this surface point is able to see the light
-            match (TraceLightRay 0 surfaceToLightRay) with
-            | Some(_) :: tail -> Color.Black
-            | _ -> material.CalculateLightInteraction -ray.Direction surfaceToLightRay.Direction n light
+                        black
    
     let ColorPixel u v =
         let ray = GetCameraRay u v
-        TraceLightRayRefactor 5 ray
+        TraceLightRay 5 ray
 
     
     let ColorXRow v =
@@ -151,9 +117,9 @@ let main argv =
 //    for y = 0 to yResolution-1 do
 //        pixelColors := ColorXRow y :: !pixelColors
 
-    let bmp = new Bitmap( xResolution, yResolution )
+    let bmp = new System.Drawing.Bitmap( xResolution, yResolution )
     !pixelColors |> List.iter ( fun pl -> pl |> List.iter ( fun p -> let (u, v, color) = p 
-                                                                     bmp.SetPixel(u, v, color) ) )
+                                                                     bmp.SetPixel(u, v, color.GetSystemColor() ) ) )
     bmp.Save("test2.bmp" )
 
     let endTime = System.DateTime.Now
