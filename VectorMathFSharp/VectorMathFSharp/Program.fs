@@ -34,9 +34,9 @@ let GetCameraRay (u: int) (v: int ) =
 
 [<EntryPoint>]
 let main argv = 
-    let light = new Light(Point3( -4., 8., -3. ), Color.init Color.White )
-    let light2 = new Light(Point3( 1., 2., -7. ), Color.init Color.Aquamarine )
-    let lightSet = [ light; light2 ]
+    let l = new Light(Point3( -4., 8., -3. ), Color.init Color.White )
+    let l2 = new Light(Point3( 1., 2., -7. ), Color.init Color.Aquamarine )
+    let lightSet = [ l; l2 ]
     let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0. ), new Material(Color.init Color.DarkGray, 0.1, 1.01 )) :> IShape;
                     new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), new Material( Color.init Color.CornflowerBlue, 0.2, 0. ) ) :> IShape;
                     new Sphere( Matrix.Translate( 0., 3.0, 0. ) * Matrix.Scale( 2., 2., 2. ), new Material( Color.init Color.LightSeaGreen, 0.5, 0. ) ) :> IShape;
@@ -72,30 +72,25 @@ let main argv =
         match hit with
         | None -> Color.init Color.Black
         | Some(time, point, normal, material, isEntering) -> 
-                    // Calculate the lighting at this point
-                    
-
                     let lightingColor = lightSet    |> List.map ( fun light -> 
                                                                     let surfaceToLight = ( light.Position - point ).Normalize()
                                                                     let surfaceToLightRay = new Ray( point + surfaceToLight * 0.0001, surfaceToLight )
 
                                                                     match FindNearestHit surfaceToLightRay scene with
-                                                                    | None -> material.CalculateLightInteraction -ray.Direction surfaceToLight normal light2
+                                                                    | None -> material.CalculateLightInteraction -ray.Direction surfaceToLight normal light
                                                                     | _ -> Color.init Color.Black )
                                                     |> List.reduce ( fun acc color -> acc + color )
 
-                    let TraceLightBounce = TraceLightRay (numberOfReflections-1)
-
-                    let (firstMediumIndex, secondMediumIndex) = if isEntering then (1.0, material.RefractionIndex) else (material.RefractionIndex, 1.0 )
                     let lightRays = [ ray.ReflectAt( time, normal ) ]
 
+                    let (firstMediumIndex, secondMediumIndex) = if isEntering then (1.0, material.RefractionIndex) else (material.RefractionIndex, 1.0 )
                     let lightRays = match ray.RefractAt( time, normal, firstMediumIndex, secondMediumIndex) with
                                     | Some(r) -> r :: lightRays
                                     | _ -> lightRays
 
                     if numberOfReflections > 0 then
-                        let opticalColor =  lightRays |> List.map( fun r -> TraceLightBounce r ) 
-                                            |> List.reduce( fun acc color -> acc + color )
+                        let opticalColor =  lightRays   |> List.map( fun r -> TraceLightRay (numberOfReflections-1) r ) 
+                                                        |> List.reduce( fun acc color -> acc + color )
                         opticalColor + lightingColor
                     else
                         Color.init Color.Black
