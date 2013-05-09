@@ -107,30 +107,6 @@ let main argv =
                                                 Color.init Color.Black
                     
                     lightingColor + reflectionColor + refractionColor
-
-    let rec TraceLightRay numberOfReflections ray = 
-        let hit = FindNearestHit ray scene
-
-        if numberOfReflections = 0 then
-            hit :: []
-        else match hit with
-             | None -> []
-             | Some( time,_, normal,_,_) -> let reflectedDirection = -ray.Direction.ReflectAbout normal
-                                            hit :: TraceLightRay (numberOfReflections - 1) ( new Ray( time * ray + reflectedDirection * 0.0001, reflectedDirection ))
-
-    let CalculateShading (light: Light) (ray:Ray) (nearestShape:(float*Point3*Vector3*Material) option ) =
-        match nearestShape with
-        | None -> Color.init Color.Black
-        | Some(time, point, n, material) -> 
-            let surfaceToLight = ( light.Position - point ).Normalize()
-
-            // This small value is to prevent self intersection with the surface near the origin
-            let surfaceToLightRay = new Ray( point + surfaceToLight * 0.0001, surfaceToLight )
-
-            // Check if this surface point is able to see the light
-            match (TraceLightRay 0 surfaceToLightRay) with
-            | Some(_) :: tail -> Color.init Color.Black
-            | _ -> material.CalculateLightInteraction -ray.Direction surfaceToLightRay.Direction n light
    
     let ColorPixel u v =
         let ray = GetCameraRay u v
