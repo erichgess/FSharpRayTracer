@@ -3,6 +3,7 @@
     open Light
     open Color
     open System
+    open Ray
 
     
     let Phong (eyeDirection: Vector3) (lightDirection: Vector3 ) (normal: Vector3) (power: float )=
@@ -28,3 +29,16 @@
             let specularColor = specular * surfaceLightColor
             let diffuseColor = diffuse * surfaceLightColor
             specularColor + diffuseColor
+
+        member this.ReflectRay (time: float, ray: Ray, normal: Vector3 ) =
+            let reflectedDirection = -ray.Direction.ReflectAbout normal
+            new Ray( time * ray + reflectedDirection * 0.0001, reflectedDirection )
+
+        member this.RefractRay ( time: float, ray: Ray, normal: Vector3, isEntering: bool ) =
+            let eyeDir = ray.Direction.Normalize()
+
+            let ( firstMediumIndex, secondMediumIndex) = if isEntering then (1.0, this.RefractionIndex) else ( this.RefractionIndex, 1.0 )
+
+            match eyeDir.RefractThrough( normal, firstMediumIndex, secondMediumIndex ) with
+            | None -> None
+            | Some(refractedDirection)-> Some(new Ray( time * ray + refractedDirection * 0.0001, refractedDirection ))

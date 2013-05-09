@@ -81,10 +81,10 @@ let main argv =
                                                                     | _ -> Color.init Color.Black )
                                                     |> List.reduce ( fun acc color -> acc + color )
 
-                    let lightRays = [ ray.ReflectAt( time, normal ) ]
+                    let lightRays = [ material.ReflectRay( time, ray, normal ) ]
 
                     let (firstMediumIndex, secondMediumIndex) = if isEntering then (1.0, material.RefractionIndex) else (material.RefractionIndex, 1.0 )
-                    let lightRays = match ray.RefractAt( time, normal, firstMediumIndex, secondMediumIndex) with
+                    let lightRays = match material.RefractRay( time, ray, normal, isEntering) with
                                     | Some(r) -> r :: lightRays
                                     | _ -> lightRays
 

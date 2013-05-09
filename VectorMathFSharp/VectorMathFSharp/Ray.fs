@@ -2,7 +2,6 @@
     open Vector
     open Point
     open Matrix
-    open Material
     open System
 
     type Ray( p: Point3, v: Vector3 ) =
@@ -25,16 +24,6 @@
 
         static member (*) (t: float, r: Ray ) =
             r.Origin + t * r.Direction
-
-        member this.ReflectAt (time: float, normal: Vector3 ) =
-            let reflectedDirection = -this.Direction.ReflectAbout normal
-            new Ray( time * this + reflectedDirection * 0.0001, reflectedDirection )
-
-        member this.RefractAt ( time: float, normal: Vector3, firstMediumIndex: float, secondMediumIndex: float ) =
-            let eyeDir = this.Direction.Normalize()
-            match eyeDir.RefractThrough( normal, firstMediumIndex, secondMediumIndex ) with
-            | None -> None
-            | Some(refractedDirection)-> Some(new Ray( time * this + refractedDirection * 0.0001, refractedDirection ))
 
         member this.Print() =
             sprintf "(%s) -> (%s)" ( this.Origin.Print() ) (this.Direction.Print() )
