@@ -85,28 +85,20 @@ let main argv =
                                                     |> List.reduce ( fun acc color -> acc + color )
 
                     let TraceLightBounce = TraceLightRay (numberOfReflections-1)
-                    let reflectionColor =   if numberOfReflections > 0 then
-                                                let reflectedDirection = -ray.Direction.ReflectAbout normal
-                                                let reflectRay = new Ray( time * ray + reflectedDirection * 0.0001, reflectedDirection )
-                                                let reflectionColor = TraceLightBounce reflectRay
-                                                material.Reflectivity * reflectionColor
-                                            else
-                                                Color.init Color.Black
 
-                    let refractionColor =   if numberOfReflections > 0 then
-                                                let eyeDir = ray.Direction.Normalize()
-                                                let (firstMediumIndex, secondMediumIndex) = if isEntering then (1.0, material.RefractionIndex) else (material.RefractionIndex, 1.0 )
-                                                let refractedDirection = eyeDir.RefractThrough( normal, firstMediumIndex, secondMediumIndex )
-                                                match refractedDirection with
-                                                | None -> Color.init Color.Black
-                                                | Some(refractedVector) ->  let refractedRay = new Ray( point + refractedVector * 0.0001, refractedVector )
-                                                                            let refractedColor = TraceLightBounce refractedRay
-                                                                            let refractedColor = 0.7 * refractedColor
-                                                                            refractedColor
-                                            else
-                                                Color.init Color.Black
-                    
-                    lightingColor + reflectionColor + refractionColor
+                    let (firstMediumIndex, secondMediumIndex) = if isEntering then (1.0, material.RefractionIndex) else (material.RefractionIndex, 1.0 )
+                    let lightRays = [ ray.ReflectAt( time, normal ) ]
+
+                    let lightRays = match ray.RefractAt( time, normal, firstMediumIndex, secondMediumIndex) with
+                                    | Some(r) -> r :: lightRays
+                                    | _ -> lightRays
+
+                    if numberOfReflections > 0 then
+                        let opticalColor =  lightRays |> List.map( fun r -> TraceLightBounce r ) 
+                                            |> List.reduce( fun acc color -> acc + color )
+                        opticalColor + lightingColor
+                    else
+                        Color.init Color.Black
    
     let ColorPixel u v =
         let ray = GetCameraRay u v
