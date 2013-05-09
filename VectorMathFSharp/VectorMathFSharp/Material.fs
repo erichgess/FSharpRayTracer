@@ -20,7 +20,7 @@
         member this.RefractionIndex = refractionIndex
 
         member this.CalculateLightInteraction  (eyeDirection: Vector3) (lightDirection: Vector3) (normal: Vector3) (light: Light) =
-            let normal = normal.Normalize()
+            let normal = normal
             let diffuse = normal * lightDirection
             let diffuse = if diffuse < 0. then 0. else diffuse
             let specular = Phong eyeDirection lightDirection normal 200.

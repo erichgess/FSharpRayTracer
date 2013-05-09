@@ -34,17 +34,19 @@ let GetCameraRay (u: int) (v: int ) =
 
 [<EntryPoint>]
 let main argv = 
-    let l = new Light(Point3( -4., 8., -3. ), Color.init Color.White )
-    let l2 = new Light(Point3( 1., 2., -7. ), Color.init Color.Aquamarine )
+    let colors = Color.ByName
+    let black = colors.["Black"]
+    let l = new Light(Point3( -4., 8., -3. ), colors.["White"] )
+    let l2 = new Light(Point3( 1., 2., -7. ), colors.["Aquamarine"] )
     let lightSet = [ l; l2 ]
-    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0. ), new Material(Color.init Color.DarkGray, 0.1, 1.01 )) :> IShape;
-                    new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), new Material( Color.init Color.CornflowerBlue, 0.2, 0. ) ) :> IShape;
-                    new Sphere( Matrix.Translate( 0., 3.0, 0. ) * Matrix.Scale( 2., 2., 2. ), new Material( Color.init Color.LightSeaGreen, 0.5, 0. ) ) :> IShape;
-                    new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 10., 10., 10. ), new Material( Color.init Color.Green, 0.2, 0. ) ) :> IShape;
+    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0. ), new Material(colors.["DarkGray"], 0.1, 1.01 )) :> IShape;
+                    new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), new Material( colors.["CornflowerBlue"], 0.2, 0. ) ) :> IShape;
+                    new Sphere( Matrix.Translate( 0., 3.0, 0. ) * Matrix.Scale( 2., 2., 2. ), new Material( colors.["LightSeaGreen"], 0.5, 0. ) ) :> IShape;
+                    new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 10., 10., 10. ), new Material( colors.["Green"], 0.2, 0. ) ) :> IShape;
                     new Plane(  Matrix.RotateY(45.0) * Matrix.Translate( 0., 0., 5.) * Matrix.Scale( 5., 5., 5. ) * Matrix.RotateX( -90.0 ), 
-                        new Material( Color.init Color.Blue, 1., 0.) ) :> IShape ]
+                        new Material( colors.["Blue"], 1., 0.) ) :> IShape ]
 
-    let FindNearestHit (ray:Ray) (scene:IShape list) =
+    let FindNearestHit (scene:IShape list) (ray:Ray) =
         // This finds all the intersections on this ray
         let intersections = scene   |> List.map( fun s -> (s.Intersection ray) ) 
                                     |> List.filter ( fun h -> match h with
@@ -67,18 +69,19 @@ let main argv =
     
     let rec TraceLightRay numberOfReflections ray =
         // Find the nearest intersection
-        let hit = FindNearestHit ray scene
+        let FindNearestHitInScene = FindNearestHit scene
+        let hit = FindNearestHitInScene ray
 
         match hit with
-        | None -> Color.init Color.Black
+        | None -> black
         | Some(time, point, normal, material, isEntering) -> 
                     let lightingColor = lightSet    |> List.map ( fun light -> 
                                                                     let surfaceToLight = ( light.Position - point ).Normalize()
                                                                     let surfaceToLightRay = new Ray( point + surfaceToLight * 0.0001, surfaceToLight )
 
-                                                                    match FindNearestHit surfaceToLightRay scene with
+                                                                    match FindNearestHitInScene surfaceToLightRay with
                                                                     | None -> material.CalculateLightInteraction -ray.Direction surfaceToLight normal light
-                                                                    | _ -> Color.init Color.Black )
+                                                                    | _ -> black)
                                                     |> List.reduce ( fun acc color -> acc + color )
 
                     let lightRays = [ (material.ReflectRay( time, ray, normal ), material.Reflectivity) ]
@@ -93,7 +96,7 @@ let main argv =
                                                         |> List.reduce( fun acc color -> acc + color )
                         opticalColor + lightingColor
                     else
-                        Color.init Color.Black
+                        black
    
     let ColorPixel u v =
         let ray = GetCameraRay u v

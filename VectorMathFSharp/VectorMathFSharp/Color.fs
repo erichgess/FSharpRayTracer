@@ -16,6 +16,16 @@
         member this.G = g
         member this.B = b
 
+        static member ByName =
+                let ctype = Drawing.Color.Black.GetType()
+                let props = ctype.GetProperties()
+                props |> Array.filter ( fun p -> 
+                                        let value = p.GetValue(Drawing.Color.Black, null) 
+                                        value.GetType() = Drawing.Color.Black.GetType())
+                       |> Array.map ( fun p -> p.GetValue(Drawing.Color.Black) :?> Drawing.Color )
+                       |> Array.map ( fun c -> c.Name, Color.init c )
+                       |> Map.ofArray
+
         member this.GetSystemColor() =
             System.Drawing.Color.FromArgb( 255, int(255. * r), int(255. * g), int(255. * b) )
 
