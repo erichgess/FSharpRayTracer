@@ -8,7 +8,6 @@ open Plane
 open Color
 open Light
 open Material
-open System.Drawing
 open System.Threading
 open System.Threading.Tasks
 open System.Timers
@@ -39,12 +38,12 @@ let main argv =
     let l = new Light(Point3( -4., 8., -3. ), colors.["White"] )
     let l2 = new Light(Point3( 1., 2., -7. ), colors.["Aquamarine"] )
     let lightSet = [ l; l2 ]
-    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0. ), new Material(colors.["DarkGray"], 0.1, 1.01 )) :> IShape;
-                    new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), new Material( colors.["CornflowerBlue"], 0.2, 0. ) ) :> IShape;
-                    new Sphere( Matrix.Translate( 0., 3.0, 0. ) * Matrix.Scale( 2., 2., 2. ), new Material( colors.["LightSeaGreen"], 0.5, 0. ) ) :> IShape;
-                    new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 10., 10., 10. ), new Material( colors.["Green"], 0.2, 0. ) ) :> IShape;
+    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0. ), new Material(new Color(0.1, 0.1, 0.1 ), colors.["White"], 0.4, 1.01 )) :> IShape;
+                    new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), new Material( colors.["CornflowerBlue"], colors.["CornflowerBlue"], 0.2, 0. ) ) :> IShape;
+                    new Sphere( Matrix.Translate( 0., 3.0, 0. ) * Matrix.Scale( 2., 2., 2. ), new Material( colors.["LightSeaGreen"], colors.["LightSeaGreen"], 0.5, 0. ) ) :> IShape;
+                    new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 10., 10., 10. ), new Material( colors.["Green"], colors.["Green"], 0.2, 0. ) ) :> IShape;
                     new Plane(  Matrix.RotateY(45.0) * Matrix.Translate( 0., 0., 5.) * Matrix.Scale( 5., 5., 5. ) * Matrix.RotateX( -90.0 ), 
-                        new Material( colors.["Blue"], 1., 0.) ) :> IShape ]
+                        new Material( colors.["Blue"], colors.["Blue"], 1., 0.) ) :> IShape ]
 
     let FindNearestHit (scene:IShape list) (ray:Ray) =
         // This finds all the intersections on this ray
@@ -118,7 +117,7 @@ let main argv =
 //    for y = 0 to yResolution-1 do
 //        pixelColors := ColorXRow y :: !pixelColors
 
-    let bmp = new Bitmap( xResolution, yResolution )
+    let bmp = new System.Drawing.Bitmap( xResolution, yResolution )
     !pixelColors |> List.iter ( fun pl -> pl |> List.iter ( fun p -> let (u, v, color) = p 
                                                                      bmp.SetPixel(u, v, color.GetSystemColor() ) ) )
     bmp.Save("test2.bmp" )

@@ -14,8 +14,9 @@
         | _ when mDotH < 0. -> 0.
         | _ -> Math.Pow( mDotH, power )
 
-    type Material( color: Color, reflectivity: float, refractionIndex: float ) =
-        member this.Color = color
+    type Material( diffuseColor: Color, specularColor: Color, reflectivity: float, refractionIndex: float ) =
+        member this.DiffuseColor = diffuseColor
+        member this.SpecularColor = specularColor
         member this.Reflectivity = reflectivity
         member this.RefractionIndex = refractionIndex
 
@@ -25,9 +26,8 @@
             let diffuse = if diffuse < 0. then 0. else diffuse
             let specular = Phong eyeDirection lightDirection normal 200.
 
-            let surfaceLightColor = light.Color * this.Color
-            let specularColor = specular * surfaceLightColor
-            let diffuseColor = diffuse * surfaceLightColor
+            let specularColor = specular * light.Color * this.SpecularColor
+            let diffuseColor = diffuse * light.Color * this.DiffuseColor
             specularColor + diffuseColor
 
         member this.ReflectRay (time: float, ray: Ray, normal: Vector3 ) =
