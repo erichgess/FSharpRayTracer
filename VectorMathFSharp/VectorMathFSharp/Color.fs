@@ -1,4 +1,6 @@
 ﻿module Color
+    open System
+
     type BoundedMath () =
             member this.Bind(input, rest ) =
                 match input with
@@ -13,6 +15,12 @@
         member this.R = r
         member this.G = g
         member this.B = b
+
+        member this.GetSystemColor() =
+            System.Drawing.Color.FromArgb( 255, int(255. * r), int(255. * g), int(255. * b) )
+
+        static member init (c:System.Drawing.Color) =
+            Color( float(c.R)/255.0, float(c.G)/255.0, float(c.B)/255.0 )
 
         static member (*) ( c: Color, d: Color ) =
             let calculateColor = new BoundedMath()
@@ -31,6 +39,9 @@
                let! b = c.B + d.B
                return Color( r, g, b )
             }
+
+        static member (+) ( c: Color, d: System.Drawing.Color ) =
+            c + Color.init d
 
         static member (*) ( a: float, c: Color ) =
             let calculateColor = new BoundedMath()

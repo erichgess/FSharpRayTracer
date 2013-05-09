@@ -1,7 +1,7 @@
 ﻿module Material
     open Vector
     open Light
-    open System.Drawing
+    open Color
     open System
 
     
@@ -24,7 +24,7 @@
             let diffuse = if diffuse < 0. then 0. else diffuse
             let specular = Phong eyeDirection lightDirection normal 200.
 
-            let surfaceLightColor = MultiplyColors light.Color this.Color
-            let specularColor = ScaleColor specular surfaceLightColor
-            let diffuseColor = ScaleColor diffuse surfaceLightColor
-            AddColors specularColor diffuseColor
+            let surfaceLightColor = light.Color * this.Color
+            let specularColor = specular * surfaceLightColor
+            let diffuseColor = diffuse * surfaceLightColor
+            specularColor + diffuseColor

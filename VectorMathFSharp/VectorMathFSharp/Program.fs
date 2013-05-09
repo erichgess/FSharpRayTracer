@@ -5,6 +5,7 @@ open Vector
 open Shape
 open Sphere
 open Plane
+open Color
 open Light
 open Material
 open System.Drawing
@@ -33,15 +34,15 @@ let GetCameraRay (u: int) (v: int ) =
 
 [<EntryPoint>]
 let main argv = 
-    let light = new Light(Point3( -4., 8., -3. ), Color.White )
-    let light2 = new Light(Point3( 1., 2., -7. ), Color.Aquamarine )
+    let light = new Light(Point3( -4., 8., -3. ), Color.init Color.White )
+    let light2 = new Light(Point3( 1., 2., -7. ), Color.init Color.Aquamarine )
     let lightSet = [ light; light2 ]
-    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0. ), new Material(Color.DarkGray, 0.1, 1.01 )) :> IShape;
-                    new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), new Material( Color.CornflowerBlue, 0.2, 0. ) ) :> IShape;
-                    new Sphere( Matrix.Translate( 0., 3.0, 0. ) * Matrix.Scale( 2., 2., 2. ), new Material( Color.LightSeaGreen, 0.5, 0. ) ) :> IShape;
-                    new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 10., 10., 10. ), new Material( Color.Green, 0.2, 0. ) ) :> IShape;
+    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0. ), new Material(Color.init Color.DarkGray, 0.1, 1.01 )) :> IShape;
+                    new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), new Material( Color.init Color.CornflowerBlue, 0.2, 0. ) ) :> IShape;
+                    new Sphere( Matrix.Translate( 0., 3.0, 0. ) * Matrix.Scale( 2., 2., 2. ), new Material( Color.init Color.LightSeaGreen, 0.5, 0. ) ) :> IShape;
+                    new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 10., 10., 10. ), new Material( Color.init Color.Green, 0.2, 0. ) ) :> IShape;
                     new Plane(  Matrix.RotateY(45.0) * Matrix.Translate( 0., 0., 5.) * Matrix.Scale( 5., 5., 5. ) * Matrix.RotateX( -90.0 ), 
-                        new Material( Color.Blue, 1., 0.) ) :> IShape ]
+                        new Material( Color.init Color.Blue, 1., 0.) ) :> IShape ]
 
     let FindNearestHit (ray:Ray) (scene:IShape list) =
         // This finds all the intersections on this ray
@@ -69,7 +70,7 @@ let main argv =
         let hit = FindNearestHit ray scene
 
         match hit with
-        | None -> Color.Black
+        | None -> Color.init Color.Black
         | Some(time, point, normal, material, isEntering) -> 
                     // Calculate the lighting at this point
                     
@@ -80,8 +81,8 @@ let main argv =
 
                                                                     match FindNearestHit surfaceToLightRay scene with
                                                                     | None -> material.CalculateLightInteraction -ray.Direction surfaceToLight normal light2
-                                                                    | _ -> Color.Black )
-                                                    |> List.reduce ( fun acc color -> AddColors acc color )
+                                                                    | _ -> Color.init Color.Black )
+                                                    |> List.reduce ( fun acc color -> acc + color )
 
                     // If numberOfReflections > 0 then
                     if numberOfReflections > 0 then
@@ -90,9 +91,9 @@ let main argv =
                         // Call tracelightray
                         let reflectionColor = TraceLightRayRefactor (numberOfReflections-1) (new Ray( time * ray + reflectedDirection * 0.0001, reflectedDirection ))
                         // Add the reflected ray color to the surface color
-                        let reflectionColor = ScaleColor material.Reflectivity reflectionColor
+                        let reflectionColor = material.Reflectivity * reflectionColor
 
-                        let lightingColor = AddColors reflectionColor lightingColor
+                        let lightingColor = reflectionColor + lightingColor
 
                         // refract the ray about the normal
                         let eyeDir = ray.Direction.Normalize()
@@ -102,8 +103,8 @@ let main argv =
                         | None -> lightingColor
                         | Some(refractedVector) ->  let refractedRay = new Ray( point + refractedVector * 0.0001, refractedVector )
                                                     let refractedColor = TraceLightRayRefactor (numberOfReflections - 1) refractedRay
-                                                    let refractedColor = ScaleColor 0.7 refractedColor
-                                                    AddColors refractedColor lightingColor
+                                                    let refractedColor = 0.7 * refractedColor
+                                                    refractedColor + lightingColor
                     else
                         lightingColor
 
@@ -119,7 +120,7 @@ let main argv =
 
     let CalculateShading (light: Light) (ray:Ray) (nearestShape:(float*Point3*Vector3*Material) option ) =
         match nearestShape with
-        | None -> Color.Black
+        | None -> Color.init Color.Black
         | Some(time, point, n, material) -> 
             let surfaceToLight = ( light.Position - point ).Normalize()
 
@@ -128,7 +129,7 @@ let main argv =
 
             // Check if this surface point is able to see the light
             match (TraceLightRay 0 surfaceToLightRay) with
-            | Some(_) :: tail -> Color.Black
+            | Some(_) :: tail -> Color.init Color.Black
             | _ -> material.CalculateLightInteraction -ray.Direction surfaceToLightRay.Direction n light
    
     let ColorPixel u v =
@@ -153,7 +154,7 @@ let main argv =
 
     let bmp = new Bitmap( xResolution, yResolution )
     !pixelColors |> List.iter ( fun pl -> pl |> List.iter ( fun p -> let (u, v, color) = p 
-                                                                     bmp.SetPixel(u, v, color) ) )
+                                                                     bmp.SetPixel(u, v, color.GetSystemColor() ) ) )
     bmp.Save("test2.bmp" )
 
     let endTime = System.DateTime.Now
