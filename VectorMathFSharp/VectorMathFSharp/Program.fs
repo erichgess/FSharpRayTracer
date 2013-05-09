@@ -81,15 +81,15 @@ let main argv =
                                                                     | _ -> Color.init Color.Black )
                                                     |> List.reduce ( fun acc color -> acc + color )
 
-                    let lightRays = [ material.ReflectRay( time, ray, normal ) ]
+                    let lightRays = [ (material.ReflectRay( time, ray, normal ), material.Reflectivity) ]
 
                     let (firstMediumIndex, secondMediumIndex) = if isEntering then (1.0, material.RefractionIndex) else (material.RefractionIndex, 1.0 )
                     let lightRays = match material.RefractRay( time, ray, normal, isEntering) with
-                                    | Some(r) -> r :: lightRays
+                                    | Some(r) -> (r, 0.7) :: lightRays
                                     | _ -> lightRays
 
                     if numberOfReflections > 0 then
-                        let opticalColor =  lightRays   |> List.map( fun r -> TraceLightRay (numberOfReflections-1) r ) 
+                        let opticalColor =  lightRays   |> List.map( fun (ray, influence) -> influence * TraceLightRay (numberOfReflections-1) ray) 
                                                         |> List.reduce( fun acc color -> acc + color )
                         opticalColor + lightingColor
                     else
