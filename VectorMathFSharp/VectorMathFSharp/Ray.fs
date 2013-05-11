@@ -25,5 +25,8 @@
         static member (*) (t: float, r: Ray ) =
             r.Origin + t * r.Direction
 
+        static member (~-) ( r: Ray ) =
+            Ray( r.Origin, -r.Direction )
+
         member this.Print() =
             sprintf "(%s) -> (%s)" ( this.Origin.Print() ) (this.Direction.Print() )

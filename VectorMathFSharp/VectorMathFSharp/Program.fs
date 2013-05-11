@@ -65,6 +65,14 @@ let main argv =
                         -> intersection
                     | _ -> acc
                 )
+
+    let CalculateLightShading (material: Material) (point: Point3) (normal: Vector3) (eyeDirection: Vector3) (light: Light) =
+        let surfaceToLight = ( light.Position - point ).Normalize()
+        let surfaceToLightRay = new Ray( point + surfaceToLight * 0.0001, surfaceToLight )
+
+        match FindNearestHit scene surfaceToLightRay with
+        | None -> material.CalculateLightInteraction eyeDirection surfaceToLight normal light
+        | _ -> black
     
     let rec TraceLightRay numberOfReflections ray =
         // Find the nearest intersection
@@ -74,13 +82,8 @@ let main argv =
         match hit with
         | None -> black
         | Some(time, point, normal, material, isEntering) -> 
-                    let lightingColor = lightSet    |> List.map ( fun light -> 
-                                                                    let surfaceToLight = ( light.Position - point ).Normalize()
-                                                                    let surfaceToLightRay = new Ray( point + surfaceToLight * 0.0001, surfaceToLight )
-
-                                                                    match FindNearestHitInScene surfaceToLightRay with
-                                                                    | None -> material.CalculateLightInteraction -ray.Direction surfaceToLight normal light
-                                                                    | _ -> black)
+                    let CalculateLightAtThisPoint = CalculateLightShading material point normal -ray.Direction
+                    let lightingColor = lightSet    |> List.map ( fun light -> CalculateLightAtThisPoint light )
                                                     |> List.reduce ( fun acc color -> acc + color )
 
                     let lightRays = [ (material.ReflectRay( time, ray, normal ), material.Reflectivity) ]
@@ -113,15 +116,11 @@ let main argv =
     let pixelColors = ref []
     let _ = Parallel.For( 0, yResolution - 1, new System.Action<int>( fun y -> let row = ColorXRow y
                                                                                lock pixelColors ( fun () -> pixelColors := row :: !pixelColors )  ) )
-    
-//    for y = 0 to yResolution-1 do
-//        pixelColors := ColorXRow y :: !pixelColors
 
     let bmp = new System.Drawing.Bitmap( xResolution, yResolution )
     !pixelColors |> List.iter ( fun pl -> pl |> List.iter ( fun p -> let (u, v, color) = p 
                                                                      bmp.SetPixel(u, v, color.GetSystemColor() ) ) )
     bmp.Save("test2.bmp" )
-
     let endTime = System.DateTime.Now
     let duration = (endTime - startTime).TotalSeconds
     printfn "Parallel Duration: %f" duration
