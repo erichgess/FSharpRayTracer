@@ -25,7 +25,7 @@
                        |> Array.map ( fun p -> p.GetValue(Drawing.Color.Black) :?> Drawing.Color )
                        |> Array.map ( fun c -> c.Name, Color.init c )
                        |> Map.ofArray
-
+                       
         member this.GetSystemColor() =
             System.Drawing.Color.FromArgb( 255, int(255. * r), int(255. * g), int(255. * b) )
 

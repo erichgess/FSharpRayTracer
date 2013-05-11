@@ -14,6 +14,13 @@
         | _ when mDotH < 0. -> 0.
         | _ -> Math.Pow( mDotH, power )
 
+    let Lambertian (lightDirection: Vector3 ) (normal: Vector3)=
+        let diffuse = normal * lightDirection
+        if diffuse > 0. then 
+            diffuse 
+        else 
+            0.
+
     type Material( diffuseColor: Color, specularColor: Color, reflectivity: float, refractionIndex: float ) =
         member this.DiffuseColor = diffuseColor
         member this.SpecularColor = specularColor
@@ -21,13 +28,11 @@
         member this.RefractionIndex = refractionIndex
 
         member this.CalculateLightInteraction  (eyeDirection: Vector3) (lightDirection: Vector3) (normal: Vector3) (light: Light) =
-            let normal = normal
-            let diffuse = normal * lightDirection
-            let diffuse = if diffuse < 0. then 0. else diffuse
-            let specular = Phong eyeDirection lightDirection normal 200.
-
-            let specularColor = specular * light.Color * this.SpecularColor
+            let diffuse = Lambertian lightDirection normal
             let diffuseColor = diffuse * light.Color * this.DiffuseColor
+
+            let specular = Phong eyeDirection lightDirection normal 200.
+            let specularColor = specular * light.Color * this.SpecularColor
             specularColor + diffuseColor
 
         member this.ReflectRay (time: float, ray: Ray, normal: Vector3 ) =
