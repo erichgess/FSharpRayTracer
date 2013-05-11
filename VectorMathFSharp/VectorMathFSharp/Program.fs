@@ -8,6 +8,7 @@ open Plane
 open Color
 open Light
 open Material
+open CookTorrance
 open System.Threading
 open System.Threading.Tasks
 open System.Timers
@@ -38,12 +39,16 @@ let main argv =
     let l = new Light(Point3( -4., 8., -3. ), colors.["White"] )
     let l2 = new Light(Point3( 1., 2., -7. ), colors.["Aquamarine"] )
     let lightSet = [ l; l2 ]
-    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0. ), new Material(new Color(0.1, 0.1, 0.1 ), colors.["White"], 0.4, 1.01 )) :> IShape;
-                    new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), new Material( colors.["CornflowerBlue"], colors.["CornflowerBlue"], 0.2, 0. ) ) :> IShape;
-                    new Sphere( Matrix.Translate( 0., 3.0, 0. ) * Matrix.Scale( 2., 2., 2. ), new Material( colors.["LightSeaGreen"], colors.["LightSeaGreen"], 0.5, 0. ) ) :> IShape;
-                    new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 10., 10., 10. ), new Material( colors.["Green"], colors.["Green"], 0.2, 0. ) ) :> IShape;
+    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0.0 ), 
+                        new Material(Lambertian, CookTorrance 0.05 1.02, colors.["Black"], colors.["CornflowerBlue"], 0.3, 1.02 )) :> IShape;
+                    new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), 
+                            new Material( Lambertian, Phong 20., colors.["CornflowerBlue"], colors.["CornflowerBlue"], 0.3, 0. ) ) :> IShape;
+                    new Sphere( Matrix.Translate( 0., 3.0, 0. ) * Matrix.Scale( 2., 2., 2. ), 
+                            new Material( Lambertian, Phong 150., colors.["LightSeaGreen"], colors.["LightSeaGreen"], 0.5, 0. ) ) :> IShape;
+                    new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 10., 10., 10. ), 
+                            new Material( Lambertian, Phong 400., colors.["Green"], colors.["Green"], 0.2, 0. ) ) :> IShape;
                     new Plane(  Matrix.RotateY(45.0) * Matrix.Translate( 0., 0., 5.) * Matrix.Scale( 5., 5., 5. ) * Matrix.RotateX( -90.0 ), 
-                        new Material( colors.["Blue"], colors.["Blue"], 1., 0.) ) :> IShape ]
+                            new Material( Lambertian, Phong 600., colors.["Blue"], colors.["Blue"], 1., 0.) ) :> IShape ]
 
     let FindNearestHit (scene:IShape list) (ray:Ray) =
         // This finds all the intersections on this ray

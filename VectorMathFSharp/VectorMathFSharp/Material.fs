@@ -6,7 +6,7 @@
     open Ray
 
     
-    let Phong (eyeDirection: Vector3) (lightDirection: Vector3 ) (normal: Vector3) (power: float )=
+    let Phong (power: float ) (eyeDirection: Vector3) (lightDirection: Vector3 ) (normal: Vector3) =
         let h = ( eyeDirection.Normalize() + lightDirection.Normalize() ).Normalize()
         let mDotH = normal * h
 
@@ -14,24 +14,29 @@
         | _ when mDotH < 0. -> 0.
         | _ -> Math.Pow( mDotH, power )
 
-    let Lambertian (lightDirection: Vector3 ) (normal: Vector3)=
+    let Lambertian (eyeDirection: Vector3) (lightDirection: Vector3 ) (normal: Vector3)=
         let diffuse = normal * lightDirection
         if diffuse > 0. then 
             diffuse 
         else 
             0.
 
-    type Material( diffuseColor: Color, specularColor: Color, reflectivity: float, refractionIndex: float ) =
+    type Material( diffuseFunction: Vector3 -> Vector3 -> Vector3 -> float, specularFunction: Vector3 -> Vector3 -> Vector3 -> float, 
+                        diffuseColor: Color, specularColor: Color,
+                        reflectivity: float, refractionIndex: float ) =
         member this.DiffuseColor = diffuseColor
         member this.SpecularColor = specularColor
         member this.Reflectivity = reflectivity
         member this.RefractionIndex = refractionIndex
 
+        member this.DiffuseFunction = diffuseFunction
+        member this.SpecularFunction = specularFunction
+
         member this.CalculateLightInteraction  (eyeDirection: Vector3) (lightDirection: Vector3) (normal: Vector3) (light: Light) =
-            let diffuse = Lambertian lightDirection normal
+            let diffuse = this.DiffuseFunction eyeDirection lightDirection normal
             let diffuseColor = diffuse * light.Color * this.DiffuseColor
 
-            let specular = Phong eyeDirection lightDirection normal 200.
+            let specular = this.SpecularFunction eyeDirection lightDirection normal 
             let specularColor = specular * light.Color * this.SpecularColor
             specularColor + diffuseColor
 

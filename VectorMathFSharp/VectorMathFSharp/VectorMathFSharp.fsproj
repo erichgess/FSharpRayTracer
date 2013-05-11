@@ -51,6 +51,7 @@
     <Compile Include="Shape.fs" />
     <Compile Include="Sphere.fs" />
     <Compile Include="Plane.fs" />
+    <Compile Include="CookTorrance.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
