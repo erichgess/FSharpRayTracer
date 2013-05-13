@@ -27,7 +27,11 @@
                        |> Map.ofArray
                        
         member this.GetSystemColor() =
-            System.Drawing.Color.FromArgb( 255, int(255. * r), int(255. * g), int(255. * b) )
+            let byteFromFloat f = 
+                let r = int(255. * f)
+                if r < 0 then 0 else if r > 255 then 255 else r
+
+            System.Drawing.Color.FromArgb( 255,byteFromFloat r, byteFromFloat g, byteFromFloat b )
 
         static member init (c:System.Drawing.Color) =
             Color( float(c.R)/255.0, float(c.G)/255.0, float(c.B)/255.0 )
