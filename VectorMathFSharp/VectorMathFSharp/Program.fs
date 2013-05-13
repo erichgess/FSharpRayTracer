@@ -83,7 +83,7 @@ let main argv =
         let surfaceToLightRay = new Ray( point + surfaceToLight * 0.0001, surfaceToLight )
 
         match FindNearestHit scene surfaceToLightRay with
-        | None -> material.CalculateLightInteraction eyeDirection surfaceToLight normal light
+        | None -> material.CalculateLightIllumination eyeDirection surfaceToLight normal light
         | _ -> black
     
     let rec TraceLightRay numberOfReflections ray =

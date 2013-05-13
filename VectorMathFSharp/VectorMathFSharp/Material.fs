@@ -32,7 +32,7 @@
         member this.DiffuseFunction = diffuseFunction
         member this.SpecularFunction = specularFunction
 
-        member this.CalculateLightInteraction  (eyeDirection: Vector3) (lightDirection: Vector3) (normal: Vector3) (light: Light) =
+        member this.CalculateLightIllumination  (eyeDirection: Vector3) (lightDirection: Vector3) (normal: Vector3) (light: Light) =
             let diffuse = this.DiffuseFunction eyeDirection lightDirection normal
             let diffuseColor = diffuse * light.Color * this.DiffuseColor
 
