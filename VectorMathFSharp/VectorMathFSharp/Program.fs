@@ -143,7 +143,10 @@ let main argv =
     let bmp = new System.Drawing.Bitmap( xResolution, yResolution )
     !pixelColors |> List.iter ( fun pl -> pl |> List.iter ( fun p -> let (u, v, color) = p 
                                                                      bmp.SetPixel(u, v, color.GetSystemColor() ) ) )
-    bmp.Save("test2.bmp" )
+
+    System.Console.Write "Save File Name: "
+    let fileName = System.Console.ReadLine ()
+    bmp.Save( fileName )
     let endTime = System.DateTime.Now
     let duration = (endTime - startTime).TotalSeconds
     printfn "Parallel Duration: %f" duration
