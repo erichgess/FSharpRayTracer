@@ -8,6 +8,7 @@ open Plane
 open Color
 open Light
 open Material
+open BRDF
 open System.Threading
 open System.Threading.Tasks
 open System.Timers
@@ -38,67 +39,89 @@ let main argv =
     let l = new Light(Point3( -4., 8., -3. ), colors.["White"] )
     let l2 = new Light(Point3( 1., 2., -7. ), colors.["Aquamarine"] )
     let lightSet = [ l; l2 ]
-    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0. ), new Material(new Color(0.1, 0.1, 0.1 ), colors.["White"], 0.4, 1.01 )) :> IShape;
-                    new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), new Material( colors.["CornflowerBlue"], colors.["CornflowerBlue"], 0.2, 0. ) ) :> IShape;
-                    new Sphere( Matrix.Translate( 0., 3.0, 0. ) * Matrix.Scale( 2., 2., 2. ), new Material( colors.["LightSeaGreen"], colors.["LightSeaGreen"], 0.5, 0. ) ) :> IShape;
-                    new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 10., 10., 10. ), new Material( colors.["Green"], colors.["Green"], 0.2, 0. ) ) :> IShape;
-                    new Plane(  Matrix.RotateY(45.0) * Matrix.Translate( 0., 0., 5.) * Matrix.Scale( 5., 5., 5. ) * Matrix.RotateX( -90.0 ), 
-                        new Material( colors.["Blue"], colors.["Blue"], 1., 0.) ) :> IShape ]
 
-    let FindNearestHit (scene:IShape list) (ray:Ray) =
-        // This finds all the intersections on this ray
-        let intersections = scene   |> List.map( fun s -> (s.Intersection ray) ) 
-                                    |> List.filter ( fun h -> match h with
-                                                              | None -> true
-                                                              | Some(time,_,_,_,_) -> 0. < time )
-        
-        // This finds the nearest intersection
-        if intersections.Length = 0 then
-            None
-        else
-            intersections |> List.reduce ( fun acc intersection -> 
-                match acc with
-                | None -> intersection
-                | Some(time, _, _, _,_) ->
-                    match intersection with
-                    | Some(intersectionTime, _, _, _,_) when intersectionTime < time
-                        -> intersection
-                    | _ -> acc
-                )
+    let cookTorranceMaterial = new MaterialFactory( Lambertian, CookTorrance 0.1 2.1 )
+    let phong20Material = new MaterialFactory( Lambertian, Phong 20. )
+    let phong150Material = new MaterialFactory( Lambertian, Phong 150.0 )
+    let phong400Material = new MaterialFactory( Lambertian, Phong 400.0 )
+    let phong600Material = new MaterialFactory( Lambertian, Phong 600.0 )
 
-    let CalculateLightShading (material: Material) (point: Point3) (normal: Vector3) (eyeDirection: Vector3) (light: Light) =
+    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0.0 ), 
+                                cookTorranceMaterial.CreateMaterial( 0.8 * colors.["CornflowerBlue"], 
+                                 colors.["Red"], 0.2, 1.01 )) :> IShape;
+
+                    new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), 
+                                phong20Material.CreateMaterial( colors.["CornflowerBlue"], 
+                                 colors.["CornflowerBlue"], 0.3, 0. ) ) :> IShape;
+
+                    new Sphere( Matrix.Translate( 0., 3.0, 0. ) * Matrix.Scale( 2., 2., 2. ), 
+                                phong150Material.CreateMaterial( colors.["LightSeaGreen"], 
+                                 colors.["LightSeaGreen"], 0.5, 0. ) ) :> IShape;
+
+                    new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 50., 50., 50. ), 
+                               phong400Material.CreateMaterial( colors.["Green"], 
+                                colors.["Green"], 0.2, 0. ) ) :> IShape;
+
+                    new Plane(  Matrix.RotateY(45.0) * Matrix.Translate( 0., 0., 5.) * Matrix.Scale( 2., 2., 2. ) * Matrix.RotateX( -90.0 ), 
+                                phong600Material.CreateMaterial( colors.["Blue"], 
+                                 colors.["Blue"], 1., 0.) ) :> IShape 
+                ]
+
+    let FindIntersections (scene: IShape list ) ( ray: Ray ) =
+        scene   |> List.map( fun s -> (s.Intersection ray) ) 
+                |> List.filter ( 
+                    fun h -> match h with
+                             | None -> true
+                             | Some(time,_,_,_,_) -> 0. < time )
+
+    let FindNearestIntersection (scene:IShape list) (ray:Ray) =
+        FindIntersections scene ray |> List.reduce (  
+                                            fun acc intersection -> 
+                                                match acc with
+                                                | None -> intersection
+                                                | Some(time, _, _, _,_) ->
+                                                    match intersection with
+                                                    | Some(intersectionTime, _, _, _,_) when intersectionTime < time
+                                                        -> intersection
+                                                    | _ -> acc )
+
+
+
+    let CalculateLightIllumination (material: Material) (point: Point3) (normal: Vector3) (eyeDirection: Vector3) (light: Light) =
         let surfaceToLight = ( light.Position - point ).Normalize()
         let surfaceToLightRay = new Ray( point + surfaceToLight * 0.0001, surfaceToLight )
 
-        match FindNearestHit scene surfaceToLightRay with
-        | None -> material.CalculateLightInteraction eyeDirection surfaceToLight normal light
+        match FindNearestIntersection scene surfaceToLightRay with
+        | None -> material.CalculateLightIllumination eyeDirection surfaceToLight normal light
         | _ -> black
+
+
     
     let rec TraceLightRay numberOfReflections ray =
         // Find the nearest intersection
-        let FindNearestHitInScene = FindNearestHit scene
+        let FindNearestHitInScene = FindNearestIntersection scene
         let hit = FindNearestHitInScene ray
 
         match hit with
         | None -> black
         | Some(time, point, normal, material, isEntering) -> 
-                    let CalculateLightAtThisPoint = CalculateLightShading material point normal -ray.Direction
-                    let lightingColor = lightSet    |> List.map ( fun light -> CalculateLightAtThisPoint light )
-                                                    |> List.reduce ( fun acc color -> acc + color )
+            let CalculateLightIlluminationAtThisPoint = CalculateLightIllumination material point normal -ray.Direction
+            let lightingColor = lightSet    |> List.map ( fun light -> CalculateLightIlluminationAtThisPoint light )
+                                            |> List.reduce ( fun acc color -> acc + color )
 
-                    let lightRays = [ (material.ReflectRay( time, ray, normal ), material.Reflectivity) ]
+            let lightRays = [ (material.ReflectRay( time, ray, normal ), material.Reflectivity) ]
 
-                    let (firstMediumIndex, secondMediumIndex) = if isEntering then (1.0, material.RefractionIndex) else (material.RefractionIndex, 1.0 )
-                    let lightRays = match material.RefractRay( time, ray, normal, isEntering) with
-                                    | Some(r) -> (r, 0.7) :: lightRays
-                                    | _ -> lightRays
+            let (firstMediumIndex, secondMediumIndex) = if isEntering then (1.0, material.RefractionIndex) else (material.RefractionIndex, 1.0 )
+            let lightRays = match material.RefractRay( time, ray, normal, isEntering) with
+                            | Some(r) -> (r, 0.7) :: lightRays
+                            | _ -> lightRays
 
-                    if numberOfReflections > 0 then
-                        let opticalColor =  lightRays   |> List.map( fun (ray, influence) -> influence * TraceLightRay (numberOfReflections-1) ray) 
-                                                        |> List.reduce( fun acc color -> acc + color )
-                        opticalColor + lightingColor
-                    else
-                        black
+            if numberOfReflections > 0 then
+                let opticalColor =  lightRays   |> List.map( fun (ray, influence) -> influence * TraceLightRay (numberOfReflections-1) ray) 
+                                                |> List.reduce( fun acc color -> acc + color )
+                opticalColor + lightingColor
+            else
+                black
    
     let ColorPixel u v =
         let ray = GetCameraRay u v
@@ -120,7 +143,10 @@ let main argv =
     let bmp = new System.Drawing.Bitmap( xResolution, yResolution )
     !pixelColors |> List.iter ( fun pl -> pl |> List.iter ( fun p -> let (u, v, color) = p 
                                                                      bmp.SetPixel(u, v, color.GetSystemColor() ) ) )
-    bmp.Save("test2.bmp" )
+
+    System.Console.Write "Save File Name: "
+    let fileName = System.Console.ReadLine ()
+    bmp.Save( fileName )
     let endTime = System.DateTime.Now
     let duration = (endTime - startTime).TotalSeconds
     printfn "Parallel Duration: %f" duration
