@@ -1,4 +1,4 @@
-﻿module CookTorrance
+﻿module BRDF
     open Vector
     open System
 
@@ -25,6 +25,25 @@
 
             a * ( 1. + b )
 
+    /// The Phong specular illumination function
+    let Phong (power: float ) (eyeDirection: Vector3) (lightDirection: Vector3 ) (normal: Vector3) =
+        let h = ( eyeDirection.Normalize() + lightDirection.Normalize() ).Normalize()
+        let mDotH = normal * h
+
+        match mDotH with
+        | _ when mDotH < 0. -> 0.
+        | _ -> Math.Pow( mDotH, power )
+
+
+    /// The Lambert diffuse illumination function
+    let Lambertian (eyeDirection: Vector3) (lightDirection: Vector3 ) (normal: Vector3)=
+        let diffuse = normal * lightDirection
+        if diffuse > 0. then 
+            diffuse 
+        else 
+            0.
+
+    /// The Cook Torrance specular illumination function
     let CookTorrance (roughness: float ) (refractionIndex: float) (eyeDirection: Vector3) (lightDirection: Vector3 ) (normal: Vector3) =
         let halfVector = ( eyeDirection + lightDirection ).Normalize()
         let nDotE = normal * eyeDirection

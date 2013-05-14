@@ -5,22 +5,6 @@
     open System
     open Ray
 
-    
-    let Phong (power: float ) (eyeDirection: Vector3) (lightDirection: Vector3 ) (normal: Vector3) =
-        let h = ( eyeDirection.Normalize() + lightDirection.Normalize() ).Normalize()
-        let mDotH = normal * h
-
-        match mDotH with
-        | _ when mDotH < 0. -> 0.
-        | _ -> Math.Pow( mDotH, power )
-
-    let Lambertian (eyeDirection: Vector3) (lightDirection: Vector3 ) (normal: Vector3)=
-        let diffuse = normal * lightDirection
-        if diffuse > 0. then 
-            diffuse 
-        else 
-            0.
-
     type Material( diffuseFunction: Vector3 -> Vector3 -> Vector3 -> float, specularFunction: Vector3 -> Vector3 -> Vector3 -> float, 
                         diffuseColor: Color, specularColor: Color,
                         reflectivity: float, refractionIndex: float ) =

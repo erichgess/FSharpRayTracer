@@ -8,7 +8,7 @@ open Plane
 open Color
 open Light
 open Material
-open CookTorrance
+open BRDF
 open System.Threading
 open System.Threading.Tasks
 open System.Timers
@@ -78,6 +78,8 @@ let main argv =
                     | _ -> acc
                 )
 
+
+
     let CalculateLightIllumination (material: Material) (point: Point3) (normal: Vector3) (eyeDirection: Vector3) (light: Light) =
         let surfaceToLight = ( light.Position - point ).Normalize()
         let surfaceToLightRay = new Ray( point + surfaceToLight * 0.0001, surfaceToLight )
@@ -85,6 +87,8 @@ let main argv =
         match FindNearestHit scene surfaceToLightRay with
         | None -> material.CalculateLightIllumination eyeDirection surfaceToLight normal light
         | _ -> black
+
+
     
     let rec TraceLightRay numberOfReflections ray =
         // Find the nearest intersection
@@ -94,23 +98,23 @@ let main argv =
         match hit with
         | None -> black
         | Some(time, point, normal, material, isEntering) -> 
-                    let CalculateLightAtThisPoint = CalculateLightIllumination material point normal -ray.Direction
-                    let lightingColor = lightSet    |> List.map ( fun light -> CalculateLightAtThisPoint light )
-                                                    |> List.reduce ( fun acc color -> acc + color )
+            let CalculateLightIlluminationAtThisPoint = CalculateLightIllumination material point normal -ray.Direction
+            let lightingColor = lightSet    |> List.map ( fun light -> CalculateLightIlluminationAtThisPoint light )
+                                            |> List.reduce ( fun acc color -> acc + color )
 
-                    let lightRays = [ (material.ReflectRay( time, ray, normal ), material.Reflectivity) ]
+            let lightRays = [ (material.ReflectRay( time, ray, normal ), material.Reflectivity) ]
 
-                    let (firstMediumIndex, secondMediumIndex) = if isEntering then (1.0, material.RefractionIndex) else (material.RefractionIndex, 1.0 )
-                    let lightRays = match material.RefractRay( time, ray, normal, isEntering) with
-                                    | Some(r) -> (r, 0.7) :: lightRays
-                                    | _ -> lightRays
+            let (firstMediumIndex, secondMediumIndex) = if isEntering then (1.0, material.RefractionIndex) else (material.RefractionIndex, 1.0 )
+            let lightRays = match material.RefractRay( time, ray, normal, isEntering) with
+                            | Some(r) -> (r, 0.7) :: lightRays
+                            | _ -> lightRays
 
-                    if numberOfReflections > 0 then
-                        let opticalColor =  lightRays   |> List.map( fun (ray, influence) -> influence * TraceLightRay (numberOfReflections-1) ray) 
-                                                        |> List.reduce( fun acc color -> acc + color )
-                        opticalColor + lightingColor
-                    else
-                        black
+            if numberOfReflections > 0 then
+                let opticalColor =  lightRays   |> List.map( fun (ray, influence) -> influence * TraceLightRay (numberOfReflections-1) ray) 
+                                                |> List.reduce( fun acc color -> acc + color )
+                opticalColor + lightingColor
+            else
+                black
    
     let ColorPixel u v =
         let ray = GetCameraRay u v
