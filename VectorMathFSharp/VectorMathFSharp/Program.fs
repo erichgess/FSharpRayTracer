@@ -47,15 +47,25 @@ let main argv =
     let phong600Material = new MaterialFactory( Lambertian, Phong 600.0 )
 
     let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0.0 ), 
-                        cookTorranceMaterial.CreateMaterial( 0.8 * colors.["CornflowerBlue"], colors.["Red"], 0.0, 1.01 )) :> IShape;
+                                cookTorranceMaterial.CreateMaterial( 0.8 * colors.["CornflowerBlue"], 
+                                 colors.["Red"], 0.0, 1.01 )) :> IShape;
+
                     new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), 
-                            phong20Material.CreateMaterial( colors.["CornflowerBlue"], colors.["CornflowerBlue"], 0.3, 0. ) ) :> IShape;
+                                phong20Material.CreateMaterial( colors.["CornflowerBlue"], 
+                                 colors.["CornflowerBlue"], 0.3, 0. ) ) :> IShape;
+
                     new Sphere( Matrix.Translate( 0., 3.0, 0. ) * Matrix.Scale( 2., 2., 2. ), 
-                            phong150Material.CreateMaterial( colors.["LightSeaGreen"], colors.["LightSeaGreen"], 0.5, 0. ) ) :> IShape;
+                                phong150Material.CreateMaterial( colors.["LightSeaGreen"], 
+                                 colors.["LightSeaGreen"], 0.5, 0. ) ) :> IShape;
+
                     new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 10., 10., 10. ), 
-                            phong400Material.CreateMaterial( colors.["Green"], colors.["Green"], 0.2, 0. ) ) :> IShape;
+                               phong400Material.CreateMaterial( colors.["Green"], 
+                                colors.["Green"], 0.2, 0. ) ) :> IShape;
+
                     new Plane(  Matrix.RotateY(45.0) * Matrix.Translate( 0., 0., 5.) * Matrix.Scale( 50., 50., 50. ) * Matrix.RotateX( -90.0 ), 
-                            phong600Material.CreateMaterial( colors.["Blue"], colors.["Blue"], 1., 0.) ) :> IShape ]
+                                phong600Material.CreateMaterial( colors.["Blue"], 
+                                 colors.["Blue"], 1., 0.) ) :> IShape 
+                ]
 
     let FindNearestHit (scene:IShape list) (ray:Ray) =
         // This finds all the intersections on this ray
