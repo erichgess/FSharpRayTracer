@@ -78,7 +78,7 @@ let main argv =
                     | _ -> acc
                 )
 
-    let CalculateLightShading (material: Material) (point: Point3) (normal: Vector3) (eyeDirection: Vector3) (light: Light) =
+    let CalculateLightIllumination (material: Material) (point: Point3) (normal: Vector3) (eyeDirection: Vector3) (light: Light) =
         let surfaceToLight = ( light.Position - point ).Normalize()
         let surfaceToLightRay = new Ray( point + surfaceToLight * 0.0001, surfaceToLight )
 
@@ -94,7 +94,7 @@ let main argv =
         match hit with
         | None -> black
         | Some(time, point, normal, material, isEntering) -> 
-                    let CalculateLightAtThisPoint = CalculateLightShading material point normal -ray.Direction
+                    let CalculateLightAtThisPoint = CalculateLightIllumination material point normal -ray.Direction
                     let lightingColor = lightSet    |> List.map ( fun light -> CalculateLightAtThisPoint light )
                                                     |> List.reduce ( fun acc color -> acc + color )
 

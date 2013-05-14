@@ -2,34 +2,35 @@
     open Vector
     open System
 
-    let CookTorranceDistribution (angle: float) (roughness: float ) =
-        let a = Math.Tan angle / roughness
-        let cs = Math.Cos angle
-        let b = 4. * roughness * roughness * cs * cs * cs * cs
+    module private Math =
+        let CookTorranceDistribution (angle: float) (roughness: float ) =
+            let a = Math.Tan angle / roughness
+            let cs = Math.Cos angle
+            let b = 4. * roughness * roughness * cs * cs * cs * cs
 
-        ( Math.Exp (- a * a ) )/ b
+            ( Math.Exp (- a * a ) )/ b
 
-    let CookTorranceFesnel (nDotL: float) ( refractionIndex: float ) =
-        let c = nDotL * nDotL
-        let g_sqr = refractionIndex * refractionIndex + nDotL * nDotL - 1.
-        let g = Math.Sqrt g_sqr
+        let Fesnel (nDotL: float) ( refractionIndex: float ) =
+            let c = nDotL * nDotL
+            let g_sqr = refractionIndex * refractionIndex + nDotL * nDotL - 1.
+            let g = Math.Sqrt g_sqr
 
-        let g_min_c = g - c
-        let g_plus_c = g + c
+            let g_min_c = g - c
+            let g_plus_c = g + c
 
-        let a = (g_min_c * g_min_c)/( g_plus_c * g_plus_c )/2.
-        let b1 = c * g_plus_c - 1.
-        let b2 = c * g_min_c + 1.
-        let b = (b1*b1)/(b2*b2)
+            let a = (g_min_c * g_min_c)/( g_plus_c * g_plus_c )/2.
+            let b1 = c * g_plus_c - 1.
+            let b2 = c * g_min_c + 1.
+            let b = (b1*b1)/(b2*b2)
 
-        a * ( 1. + b )
+            a * ( 1. + b )
 
     let CookTorrance (roughness: float ) (refractionIndex: float) (eyeDirection: Vector3) (lightDirection: Vector3 ) (normal: Vector3) =
-        let h = ( eyeDirection + lightDirection ).Normalize()
+        let halfVector = ( eyeDirection + lightDirection ).Normalize()
         let nDotE = normal * eyeDirection
-        let nDotH = normal * h
+        let nDotH = normal * halfVector
         let nDotL = normal * lightDirection
-        let hDotL = h * lightDirection
+        let hDotL = halfVector * lightDirection
 
         let gm = 2. * nDotH * nDotL / hDotL
         let gs = 2. * nDotH * nDotE / hDotL
@@ -39,9 +40,9 @@
                 | gm,gs when gs < 1. && gs < gm -> gs
                 | _ -> 1.
 
-        let F = CookTorranceFesnel nDotL refractionIndex
+        let F = Math.Fesnel nDotL refractionIndex
 
         let delta = Math.Acos nDotH
-        let D = CookTorranceDistribution delta roughness
+        let D = Math.CookTorranceDistribution delta roughness
 
         (F * D * G ) / nDotE
