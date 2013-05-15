@@ -14,8 +14,10 @@ open System.Threading.Tasks
 open System.Timers
 
 
-let xResolution = 512
-let yResolution = 512
+let xResolution = 1024
+let yResolution = 1024
+let colors = Color.ByName
+let black = colors.["Black"]
 
 let GetCameraRay (u: int) (v: int ) =
     let center = Vector3( 0., 0., -8. )
@@ -32,10 +34,37 @@ let GetCameraRay (u: int) (v: int ) =
     Ray( Point3( center.X, center.Y, center.Z ), (viewPoint - center).Normalize() )
 
 
+let FindIntersections (scene: IShape list ) ( ray: Ray ) =
+    scene   |> List.map( fun s -> (s.Intersection ray) ) 
+            |> List.filter ( 
+                fun h -> match h with
+                            | None -> true
+                            | Some(time,_,_,_,_) -> 0. < time )
+
+let FindNearestIntersection (scene:IShape list) (ray:Ray) =
+    FindIntersections scene ray |> List.reduce (  
+                                        fun acc intersection -> 
+                                            match acc with
+                                            | None -> intersection
+                                            | Some(time, _, _, _,_) ->
+                                                match intersection with
+                                                | Some(intersectionTime, _, _, _,_) when intersectionTime < time
+                                                    -> intersection
+                                                | _ -> acc )
+
+let CreateRingOfSpheres numberOfSpheres =
+    let angleBetweenSpheres = 2. * System.Math.PI / float(numberOfSpheres)
+    let angleBetweenSpheresInDegrees = 180. / System.Math.PI * angleBetweenSpheres
+    let distanceFromCenter = 1. / System.Math.Sin ( angleBetweenSpheres / 2.0 )
+    let translate = Matrix.Translate( 0., distanceFromCenter, 0. )
+
+    let cookTorranceMaterial = new MaterialFactory( Lambertian, CookTorrance 0.1 2.1 )
+    List.init numberOfSpheres ( fun i -> new Sphere( Matrix.Scale( 0.3, 0.3, 0.3 ) * Matrix.RotateX( 120.0 ) * Matrix.RotateZ(angleBetweenSpheresInDegrees * float(i)) * translate, cookTorranceMaterial.CreateMaterial( colors.["Red"], 
+                                                      colors.["CornflowerBlue"], 0.3, 1.76 ) ) :> IShape )
+
 [<EntryPoint>]
 let main argv = 
-    let colors = Color.ByName
-    let black = colors.["Black"]
+    
     let l = new Light(Point3( -4., 8., -3. ), colors.["White"] )
     let l2 = new Light(Point3( 1., 2., -7. ), colors.["Aquamarine"] )
     let lightSet = [ l; l2 ]
@@ -46,17 +75,9 @@ let main argv =
     let phong400Material = new MaterialFactory( Lambertian, Phong 400.0 )
     let phong600Material = new MaterialFactory( Lambertian, Phong 600.0 )
 
-    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( -1., 0.0, 0.0 ), 
+    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 0., 0.0, 0.0 ), 
                                 cookTorranceMaterial.CreateMaterial( 0.8 * colors.["CornflowerBlue"], 
                                  colors.["Red"], 0.2, 1.01 )) :> IShape;
-
-                    new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 1., 0.0, 0. ), 
-                                phong20Material.CreateMaterial( colors.["CornflowerBlue"], 
-                                 colors.["CornflowerBlue"], 0.3, 0. ) ) :> IShape;
-
-                    new Sphere( Matrix.Translate( 0., 3.0, 0. ) * Matrix.Scale( 2., 2., 2. ), 
-                                phong150Material.CreateMaterial( colors.["LightSeaGreen"], 
-                                 colors.["LightSeaGreen"], 0.5, 0. ) ) :> IShape;
 
                     new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 50., 50., 50. ), 
                                phong400Material.CreateMaterial( colors.["Green"], 
@@ -66,24 +87,7 @@ let main argv =
                                 phong600Material.CreateMaterial( colors.["Blue"], 
                                  colors.["Blue"], 1., 0.) ) :> IShape 
                 ]
-
-    let FindIntersections (scene: IShape list ) ( ray: Ray ) =
-        scene   |> List.map( fun s -> (s.Intersection ray) ) 
-                |> List.filter ( 
-                    fun h -> match h with
-                             | None -> true
-                             | Some(time,_,_,_,_) -> 0. < time )
-
-    let FindNearestIntersection (scene:IShape list) (ray:Ray) =
-        FindIntersections scene ray |> List.reduce (  
-                                            fun acc intersection -> 
-                                                match acc with
-                                                | None -> intersection
-                                                | Some(time, _, _, _,_) ->
-                                                    match intersection with
-                                                    | Some(intersectionTime, _, _, _,_) when intersectionTime < time
-                                                        -> intersection
-                                                    | _ -> acc )
+    let scene = List.append scene (CreateRingOfSpheres 15)
 
 
 
