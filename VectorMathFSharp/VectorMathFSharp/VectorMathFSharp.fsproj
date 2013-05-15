@@ -51,7 +51,9 @@
     <Compile Include="Shape.fs" />
     <Compile Include="Sphere.fs" />
     <Compile Include="Plane.fs" />
+    <Compile Include="Scene.fs" />
     <Compile Include="BRDF.fs" />
+    <Compile Include="RayTracer.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>

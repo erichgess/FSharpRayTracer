@@ -9,9 +9,11 @@ open Color
 open Light
 open Material
 open BRDF
+open Scene
 open System.Threading
 open System.Threading.Tasks
 open System.Timers
+open RayTracer
 
 
 let xResolution = 1024
@@ -32,25 +34,6 @@ let GetCameraRay (u: int) (v: int ) =
     let yPos = float(ymax) - float(v) * yDelta
     let viewPoint = Vector3( xPos, yPos, 0. )
     Ray( Point3( center.X, center.Y, center.Z ), (viewPoint - center).Normalize() )
-
-
-let FindIntersections (scene: IShape list ) ( ray: Ray ) =
-    scene   |> List.map( fun s -> (s.Intersection ray) ) 
-            |> List.filter ( 
-                fun h -> match h with
-                            | None -> true
-                            | Some(time,_,_,_,_) -> 0. < time )
-
-let FindNearestIntersection (scene:IShape list) (ray:Ray) =
-    FindIntersections scene ray |> List.reduce (  
-                                        fun acc intersection -> 
-                                            match acc with
-                                            | None -> intersection
-                                            | Some(time, _, _, _,_) ->
-                                                match intersection with
-                                                | Some(intersectionTime, _, _, _,_) when intersectionTime < time
-                                                    -> intersection
-                                                | _ -> acc )
 
 let CreateRingOfSpheres numberOfSpheres =
     let angleBetweenSpheres = 2. * System.Math.PI / float(numberOfSpheres)
@@ -75,7 +58,7 @@ let main argv =
     let phong400Material = new MaterialFactory( Lambertian, Phong 400.0 )
     let phong600Material = new MaterialFactory( Lambertian, Phong 600.0 )
 
-    let scene = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 0., 0.0, 0.0 ), 
+    let shapes = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 0., 0.0, 0.0 ), 
                                 cookTorranceMaterial.CreateMaterial( 0.8 * colors.["CornflowerBlue"], 
                                  colors.["Red"], 0.2, 1.01 )) :> IShape;
 
@@ -87,49 +70,12 @@ let main argv =
                                 phong600Material.CreateMaterial( colors.["Blue"], 
                                  colors.["Blue"], 1., 0.) ) :> IShape 
                 ]
-    let scene = List.append scene (CreateRingOfSpheres 15)
-
-
-
-    let CalculateLightIllumination (material: Material) (point: Point3) (normal: Vector3) (eyeDirection: Vector3) (light: Light) =
-        let surfaceToLight = ( light.Position - point ).Normalize()
-        let surfaceToLightRay = new Ray( point + surfaceToLight * 0.0001, surfaceToLight )
-
-        match FindNearestIntersection scene surfaceToLightRay with
-        | None -> material.CalculateLightIllumination eyeDirection surfaceToLight normal light
-        | _ -> black
-
-
-    
-    let rec TraceLightRay numberOfReflections ray =
-        // Find the nearest intersection
-        let FindNearestHitInScene = FindNearestIntersection scene
-        let hit = FindNearestHitInScene ray
-
-        match hit with
-        | None -> black
-        | Some(time, point, normal, material, isEntering) -> 
-            let CalculateLightIlluminationAtThisPoint = CalculateLightIllumination material point normal -ray.Direction
-            let lightingColor = lightSet    |> List.map ( fun light -> CalculateLightIlluminationAtThisPoint light )
-                                            |> List.reduce ( fun acc color -> acc + color )
-
-            let lightRays = [ (material.ReflectRay( time, ray, normal ), material.Reflectivity) ]
-
-            let (firstMediumIndex, secondMediumIndex) = if isEntering then (1.0, material.RefractionIndex) else (material.RefractionIndex, 1.0 )
-            let lightRays = match material.RefractRay( time, ray, normal, isEntering) with
-                            | Some(r) -> (r, 0.7) :: lightRays
-                            | _ -> lightRays
-
-            if numberOfReflections > 0 then
-                let opticalColor =  lightRays   |> List.map( fun (ray, influence) -> influence * TraceLightRay (numberOfReflections-1) ray) 
-                                                |> List.reduce( fun acc color -> acc + color )
-                opticalColor + lightingColor
-            else
-                black
+    let shapes = List.append shapes (CreateRingOfSpheres 15)
+    let scene = new Scene( lightSet, shapes )
    
     let ColorPixel u v =
         let ray = GetCameraRay u v
-        TraceLightRay 5 ray
+        TraceLightRay scene 5 ray
 
     
     let ColorXRow v =
