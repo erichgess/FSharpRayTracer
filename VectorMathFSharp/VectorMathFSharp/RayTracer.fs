@@ -36,13 +36,11 @@
         match FindNearestIntersection shapes surfaceToLightRay with
         | None -> material.CalculateLightIllumination eyeDirection surfaceToLight normal light
         | _ -> black
-
-
     
     let rec TraceLightRay (scene:Scene) numberOfReflections ray =
         // Find the nearest intersection
         let FindNearestHitInScene = FindNearestIntersection scene.Shapes
-        let hit = FindNearestHitInScene ray
+        let hit = if numberOfReflections <= 0 then None else FindNearestHitInScene ray
 
         match hit with
         | None -> black
@@ -58,9 +56,7 @@
                             | Some(r) -> (r, 0.7) :: lightRays
                             | _ -> lightRays
 
-            if numberOfReflections > 0 then
-                let opticalColor =  lightRays   |> List.map( fun (ray, influence) -> influence * TraceLightRay scene (numberOfReflections-1) ray) 
-                                                |> List.reduce( fun acc color -> acc + color )
-                opticalColor + lightingColor
-            else
-                black
+            let opticalColor =  lightRays   |> List.map( fun (ray, influence) -> influence * TraceLightRay scene (numberOfReflections-1) ray) 
+                                                                    |> List.reduce( fun acc color -> acc + color )
+
+            opticalColor + lightingColor
