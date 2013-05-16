@@ -44,12 +44,9 @@
                                            | Some(time,_,_,_,_) -> time )
 
     let FindNearestIntersection (shapes: IShape list) (ray:Ray) =
-        let hits = FindIntersections shapes ray 
-        
-        if hits.IsEmpty then
-            None
-        else
-            hits.Head
+        match FindIntersections shapes ray with
+        | [] -> None
+        | head :: tail -> head
 
     let CalculateLightIllumination (material: Material) (point: Point3) (normal: Vector3) (eyeDirection: Vector3) (shapes: IShape list) (light: Light) =
         let surfaceToLight = ( light.Position - point ).Normalize()
