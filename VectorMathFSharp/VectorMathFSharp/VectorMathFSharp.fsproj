@@ -49,6 +49,7 @@
     <Compile Include="Ray.fs" />
     <Compile Include="Material.fs" />
     <Compile Include="Shape.fs" />
+    <Compile Include="Intersection.fs" />
     <Compile Include="Sphere.fs" />
     <Compile Include="Plane.fs" />
     <Compile Include="Scene.fs" />
