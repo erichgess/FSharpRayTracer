@@ -59,33 +59,10 @@
         | None -> material.CalculateLightIllumination eyeDirection surfaceToLight normal light
         | _ -> black
 
-    let TotalIlluminationFromSceneLights (scene: Scene) (material: Material) (point: Point3) (normal: Vector3) (ray: Ray) =
+    let IlluminationFromAllLights (scene: Scene) (material: Material) (point: Point3) (normal: Vector3) (ray: Ray) =
         let CalculateLightIlluminationAtThisPoint = CalculateLightIllumination material point normal -ray.Direction
         scene.Lights |> List.map ( fun light -> CalculateLightIlluminationAtThisPoint scene.Shapes light )
                      |> List.reduce ( fun acc color -> acc + color )
-    
-    let rec TraceLightRay (scene:Scene) numberOfReflections ray =
-        // Find the nearest intersection
-        let FindNearestHitInScene = FindNearestIntersection scene.Shapes
-        let hit = if numberOfReflections <= 0 then None else FindNearestHitInScene ray
-
-        match hit with
-        | None -> black
-        | Some(time, point, normal, material, isEntering) -> 
-            let CalculateLightIlluminationAtThisPoint = CalculateLightIllumination material point normal -ray.Direction
-            let lightingColor = TotalIlluminationFromSceneLights scene material point normal ray
-
-            let lightRays = [ (material.ReflectRay( time, ray, normal ), material.Reflectivity) ]
-
-            let (firstMediumIndex, secondMediumIndex) = if isEntering then (1.0, material.RefractionIndex) else (material.RefractionIndex, 1.0 )
-            let lightRays = match material.RefractRay( time, ray, normal, isEntering) with
-                            | Some(r) -> (r, 0.7) :: lightRays
-                            | _ -> lightRays
-
-            let opticalColor =  lightRays   |> List.map( fun (ray, influence) -> influence * TraceLightRay scene (numberOfReflections-1) ray) 
-                                                                    |> List.reduce( fun acc color -> acc + color )
-
-            opticalColor + lightingColor
 
     let rec BuildLightRayTree (scene: Scene) numberOfReflections ray =
         let FindNearestHitInScene = FindNearestIntersection scene.Shapes
@@ -95,7 +72,7 @@
         | None -> NoIllumination
         | Some(time, point, normal, material, isEntering) -> 
             let CalculateLightIlluminationAtThisPoint = CalculateLightIllumination material point normal -ray.Direction
-            let lightingIllumination = TotalIlluminationFromSceneLights scene material point normal ray
+            let lightingIllumination = IlluminationFromAllLights scene material point normal ray
 
             let reflectedRay = material.ReflectRay( time, ray, normal )
             let reflectedIlluminationTree = BuildLightRayTree scene (numberOfReflections - 1) reflectedRay
