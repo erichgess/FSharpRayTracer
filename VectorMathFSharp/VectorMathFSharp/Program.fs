@@ -16,8 +16,8 @@ open System.Timers
 open RayTracer
 
 
-let xResolution = 1024
-let yResolution = 1024
+let xResolution = 512
+let yResolution = 512
 let colors = Color.ByName
 let black = colors.["Black"]
 
@@ -75,7 +75,7 @@ let main argv =
    
     let ColorPixel u v =
         let ray = GetCameraRay u v
-        TraceLightRay scene 5 ray
+        CalculateTotalIllumination (BuildLightRayTree scene 5 ray)
 
     
     let ColorXRow v =
