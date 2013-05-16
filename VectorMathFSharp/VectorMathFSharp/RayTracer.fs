@@ -18,11 +18,20 @@
         | NoIllumination
         | IlluminationSource of Intersection * IlluminationTree * IlluminationTree
 
-    let CalculateTotalIllumination (illuminationTree: IlluminationTree) =
-        0
 
     let colors = Color.ByName
     let black = colors.["Black"]
+
+    let rec CalculateTotalIllumination (illuminationTree: IlluminationTree) =
+        match illuminationTree with
+        | NoIllumination -> black
+        | IlluminationSource(hit, reflected, refracted ) -> 
+                                let percentFromRefraction = 1. - hit.Material.Reflectivity
+                                hit.Illumination 
+                                + hit.Material.Reflectivity * ( CalculateTotalIllumination reflected ) 
+                                + percentFromRefraction * (CalculateTotalIllumination refracted )
+
+    
 
     let FindIntersections (shapes: IShape list ) ( ray: Ray ) =
         shapes   |> List.map( fun s -> (s.Intersection ray) ) 
