@@ -8,14 +8,18 @@
     open Scene
     open Color
 
-    type Intersection( point: Point3, normal: Vector3, illumination: Color ) =
+    type Intersection( point: Point3, normal: Vector3, material: Material, illumination: Color ) =
         member this.Point = point
         member this.Normal = normal
+        member this.Material = material
         member this.Illumination = illumination
 
-    type IntersectionTree =
-        | Leaf of Intersection
-        | Branch of Intersection * IntersectionTree * IntersectionTree
+    type IlluminationTree =
+        | NoIllumination
+        | IlluminationSource of Intersection * IlluminationTree * IlluminationTree
+
+    let CalculateTotalIllumination (illuminationTree: IlluminationTree) =
+        0
 
     let colors = Color.ByName
     let black = colors.["Black"]
@@ -73,3 +77,26 @@
                                                                     |> List.reduce( fun acc color -> acc + color )
 
             opticalColor + lightingColor
+
+    let rec BuildLightRayTree (scene: Scene) numberOfReflections ray =
+        let FindNearestHitInScene = FindNearestIntersection scene.Shapes
+        let hit = if numberOfReflections <= 0 then None else FindNearestHitInScene ray
+
+        match hit with
+        | None -> NoIllumination
+        | Some(time, point, normal, material, isEntering) -> 
+            let CalculateLightIlluminationAtThisPoint = CalculateLightIllumination material point normal -ray.Direction
+            let lightingIllumination = TotalIlluminationFromSceneLights scene material point normal ray
+
+            let reflectedRay = material.ReflectRay( time, ray, normal )
+            let reflectedIlluminationTree = BuildLightRayTree scene (numberOfReflections - 1) reflectedRay
+
+            let (firstMediumIndex, secondMediumIndex) = if isEntering then (1.0, material.RefractionIndex) else (material.RefractionIndex, 1.0 )
+            let refractedIlluminationTree = match material.RefractRay( time, ray, normal, isEntering) with
+                                            | None -> NoIllumination
+                                            | Some(r) -> BuildLightRayTree scene (numberOfReflections - 1) r
+
+            IlluminationSource( new Intersection( point, normal, material, lightingIllumination ), reflectedIlluminationTree, refractedIlluminationTree )
+
+            
+            
