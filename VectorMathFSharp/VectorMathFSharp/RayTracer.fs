@@ -35,21 +35,21 @@
 
     let FindIntersections (shapes: IShape list ) ( ray: Ray ) =
         shapes   |> List.map( fun s -> (s.Intersection ray) ) 
-                |> List.filter ( 
+                 |> List.filter ( 
                     fun h -> match h with
-                                | None -> true
+                                | None -> false
                                 | Some(time,_,_,_,_) -> 0. < time )
+                 |> List.sortBy ( fun h -> match h with
+                                           | None -> System.Double.PositiveInfinity
+                                           | Some(time,_,_,_,_) -> time )
 
     let FindNearestIntersection (shapes: IShape list) (ray:Ray) =
-        FindIntersections shapes ray |> List.reduce (  
-                                            fun acc intersection -> 
-                                                match acc with
-                                                | None -> intersection
-                                                | Some(time, _, _, _,_) ->
-                                                    match intersection with
-                                                    | Some(intersectionTime, _, _, _,_) when intersectionTime < time
-                                                        -> intersection
-                                                    | _ -> acc )
+        let hits = FindIntersections shapes ray 
+        
+        if hits.IsEmpty then
+            None
+        else
+            hits.Head
 
     let CalculateLightIllumination (material: Material) (point: Point3) (normal: Vector3) (eyeDirection: Vector3) (shapes: IShape list) (light: Light) =
         let surfaceToLight = ( light.Position - point ).Normalize()
@@ -59,10 +59,16 @@
         | None -> material.CalculateLightIllumination eyeDirection surfaceToLight normal light
         | _ -> black
 
+
+
+
     let IlluminationFromAllLights (scene: Scene) (material: Material) (point: Point3) (normal: Vector3) (ray: Ray) =
         let CalculateLightIlluminationAtThisPoint = CalculateLightIllumination material point normal -ray.Direction
         scene.Lights |> List.map ( fun light -> CalculateLightIlluminationAtThisPoint scene.Shapes light )
                      |> List.reduce ( fun acc color -> acc + color )
+
+
+
 
     let rec BuildLightRayTree (scene: Scene) numberOfReflections ray =
         let FindNearestHitInScene = FindNearestIntersection scene.Shapes
