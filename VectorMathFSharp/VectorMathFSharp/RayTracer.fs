@@ -8,6 +8,15 @@
     open Scene
     open Color
 
+    type Intersection( point: Point3, normal: Vector3, illumination: Color ) =
+        member this.Point = point
+        member this.Normal = normal
+        member this.Illumination = illumination
+
+    type IntersectionTree =
+        | Leaf of Intersection
+        | Branch of Intersection * IntersectionTree * IntersectionTree
+
     let colors = Color.ByName
     let black = colors.["Black"]
 
@@ -36,6 +45,11 @@
         match FindNearestIntersection shapes surfaceToLightRay with
         | None -> material.CalculateLightIllumination eyeDirection surfaceToLight normal light
         | _ -> black
+
+    let TotalIlluminationFromSceneLights (scene: Scene) (material: Material) (point: Point3) (normal: Vector3) (ray: Ray) =
+        let CalculateLightIlluminationAtThisPoint = CalculateLightIllumination material point normal -ray.Direction
+        scene.Lights |> List.map ( fun light -> CalculateLightIlluminationAtThisPoint scene.Shapes light )
+                     |> List.reduce ( fun acc color -> acc + color )
     
     let rec TraceLightRay (scene:Scene) numberOfReflections ray =
         // Find the nearest intersection
@@ -46,8 +60,7 @@
         | None -> black
         | Some(time, point, normal, material, isEntering) -> 
             let CalculateLightIlluminationAtThisPoint = CalculateLightIllumination material point normal -ray.Direction
-            let lightingColor = scene.Lights |> List.map ( fun light -> CalculateLightIlluminationAtThisPoint scene.Shapes light )
-                                             |> List.reduce ( fun acc color -> acc + color )
+            let lightingColor = TotalIlluminationFromSceneLights scene material point normal ray
 
             let lightRays = [ (material.ReflectRay( time, ray, normal ), material.Reflectivity) ]
 
