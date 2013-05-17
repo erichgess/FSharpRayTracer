@@ -55,6 +55,7 @@
     <Compile Include="BRDF.fs" />
     <Compile Include="KDTree.fs" />
     <Compile Include="RayTracer.fs" />
+    <Compile Include="PhotonMapper.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>

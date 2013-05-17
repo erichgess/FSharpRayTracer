@@ -7,9 +7,10 @@
     open Point
     open Ray
     open KDTree
+    
+    let rand = new Random()
 
     let RandomPoint () =
-        let rand = new Random()
         Point3( 2. * rand.NextDouble() - 1., 0., rand.NextDouble() * 2. - 1. )
     
     let CalculatePhotonMapForLight (scene: Scene) (light: Light ) =
@@ -26,17 +27,17 @@
         let rec BuildPointList  (tree: IlluminationTree) =
             match tree with
             | NoIllumination -> []
-            | IlluminationSource(hit, reflected, refracted ) -> (hit.Point, hit.Illumination) :: BuildPointList refracted
+            | IlluminationSource(hit, reflected, refracted ) -> (hit.Point, hit.Illumination) :: BuildPointList refracted @ BuildPointList reflected
         
         BuildPointList illuminationTree
 
-    let BuildListOfPhotons (scene: Scene) (light: Light) =
+    let BuildListOfPhotons (loops: int) (scene: Scene) (light: Light) =
         let mutable photonList = []
 
-        for i = 1 to 1000 do
+        for i = 1 to loops do
             photonList <- photonList @ (CalculatePhotonMapForLight scene light )
         photonList
 
     let BuildPhotonMap (scene: Scene) (light: Light ) =
-        let photonList = BuildListOfPhotons scene light
+        let photonList = BuildListOfPhotons 1000 scene light
         BuildKdTree photonList 0

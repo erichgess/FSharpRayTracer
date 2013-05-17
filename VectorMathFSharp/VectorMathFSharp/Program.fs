@@ -14,10 +14,11 @@ open System.Threading
 open System.Threading.Tasks
 open System.Timers
 open RayTracer
+open PhotonMapper
 
 
-let xResolution = 512
-let yResolution = 512
+let xResolution = 256
+let yResolution = 256
 let colors = Color.ByName
 let black = colors.["Black"]
 
@@ -101,5 +102,10 @@ let main argv =
     let duration = (endTime - startTime).TotalSeconds
     printfn "Parallel Duration: %f" duration
 
+
+    // test the photon mapper
+    let photonList = BuildListOfPhotons 50 scene l
+    printfn "Photon Count: %d" ( photonList |> List.length )
+    photonList |> List.iter ( fun (p,c) -> printfn "(%f, %f, %f )"  p.X p.Y p.Z )
     
     0 // return an integer exit code
