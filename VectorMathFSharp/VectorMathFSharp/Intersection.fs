@@ -14,16 +14,12 @@
 
 
     let FindIntersections (shapes: IShape list ) ( ray: Ray ) =
-        shapes   |> List.map( fun s -> (s.Intersection ray) ) 
-                 |> List.filter ( 
-                    fun h -> match h with
-                                | None -> false
-                                | Some(time,_,_,_,_) -> 0. < time )
-                 |> List.sortBy ( fun h -> match h with
-                                           | None -> System.Double.PositiveInfinity
-                                           | Some(time,_,_,_,_) -> time )
+        let intersections = shapes |> List.map( fun s -> (s.Intersection ray) ) |> List.reduce ( fun acc hitList -> List.append acc hitList )
+
+        intersections |> List.filter ( fun (time,_,_,_,_) -> 0. < time )
+                      |> List.sortBy ( fun (time,_,_,_,_) -> time )
 
     let FindNearestIntersection (shapes: IShape list) (ray:Ray) =
         match FindIntersections shapes ray with
         | [] -> None
-        | head :: tail -> head
+        | head :: tail -> Some(head)

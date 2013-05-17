@@ -6,5 +6,5 @@
     open System.Drawing
 
     type IShape =
-        abstract Intersection: (Ray) -> (float * Point3 * Vector3 * Material * bool) option
+        abstract Intersection: (Ray) -> (float * Point3 * Vector3 * Material * bool) list
         abstract Material:  Material

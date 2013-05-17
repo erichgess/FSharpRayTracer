@@ -28,7 +28,7 @@
                 let discrim = b*b - 4.*a*c
 
                 if discrim < 0. then
-                    None
+                    []
                 else
                     let discrimRoot = discrim |> Math.Sqrt
 
@@ -41,7 +41,7 @@
                     let tHit = if 0. <= tFirstHit then tFirstHit else tSecondHit
 
                     if tHit < 0. then
-                        None
+                        []
                     else
                         let pointOfIntersection = tHit * ray
                         let normal = transformedRay.Origin + transformedRay.Direction * tHit
@@ -51,4 +51,4 @@
                         let normal = if isEntering then normal else -normal
 
                         let shape = this :> IShape
-                        Some( tHit, pointOfIntersection, normal.Normalize(), shape.Material, isEntering )
+                        [( tHit, pointOfIntersection, normal.Normalize(), shape.Material, isEntering )]

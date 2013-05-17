@@ -24,14 +24,14 @@
                 let denom = transformedRay.Direction.Y
             
                 if Math.Abs denom <= 0.0001 then
-                    None
+                    []
                 else
                     let time = -transformedRay.Origin.Y / denom
                     let transformedIntersectionPoint = time * transformedRay
                     let withinSquare = transformedIntersectionPoint.X <= 1. && -1. <= transformedIntersectionPoint.X
                                         && transformedIntersectionPoint.Z <= 1. && -1. <= transformedIntersectionPoint.Z
                     if time <= 0. || not withinSquare then
-                        None
+                        []
                     else
                         let shape = this :> IShape
-                        Some( time, time * ray, normal, shape.Material, true)
+                        [( time, time * ray, normal, shape.Material, true)]

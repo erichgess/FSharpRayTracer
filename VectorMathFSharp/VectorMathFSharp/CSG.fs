@@ -30,4 +30,4 @@
             member this.Material = material
 
             member this.Intersection ( ray: Ray ) = 
-                None
+                []
