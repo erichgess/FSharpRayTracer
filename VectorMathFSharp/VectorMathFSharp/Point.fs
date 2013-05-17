@@ -8,6 +8,13 @@
         member this.Y = y
         member this.Z = z
 
+        member this.Item i =
+            match i with
+            | 0 -> Some(this.X)
+            | 1 -> Some(this.Y)
+            | 2 -> Some(this.Z)
+            | _ -> None
+
         static member init f =
             let a = Array.init 4 f
             Point3( a.[0], a.[1], a.[2] )
