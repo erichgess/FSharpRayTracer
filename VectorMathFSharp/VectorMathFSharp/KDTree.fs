@@ -44,3 +44,22 @@
                 (point,data) :: points
             else
                 points
+
+
+    let rec FindAllPointsNearPoint2 (tree: KDTreeNode<'a>) (target: Point3 ) (radiusSquared: float) (depth: int)=
+        match tree with
+        | Empty -> []
+        | Node( left, point, data, right ) -> 
+            let axis = depth % 3
+            let points =    if System.Math.Abs ( target.[axis] - point.[axis] ) < radiusSquared then
+                                (FindAllPointsNearPoint left target radiusSquared (depth+1)) 
+                                @ (FindAllPointsNearPoint right target radiusSquared (depth+1))
+                            else if target.[axis] < point.[axis] then
+                                FindAllPointsNearPoint left target radiusSquared (depth+1)
+                            else
+                                FindAllPointsNearPoint right target radiusSquared (depth+1)
+            let x = point - target
+            if x.LengthSquared() <= radiusSquared then
+                (point,data) :: points
+            else
+                points
