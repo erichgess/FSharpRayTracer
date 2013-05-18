@@ -39,6 +39,6 @@
         photonList
 
     let BuildPhotonMap (scene: Scene) (light: Light ) =
-        let photonList = BuildListOfPhotons 1000 scene light
+        let photonList = BuildListOfPhotons 10000 scene light
         printfn "Photons: %d" ( List.length photonList )
         BuildKdTree photonList 0

@@ -109,7 +109,11 @@ let main argv =
 
     // test find points
     let target = Point3(-0.182862, -0.982818, -0.025117 )
+    let startTime = System.DateTime.Now
     let points = FindAllPointsNearPoint photonList target 1. 0
+    let endTime = System.DateTime.Now
+    let duration = (endTime - startTime).TotalSeconds
+    printfn "KD Tree Search: %f" duration
 
     points |> List.iter ( fun (p, c)-> printfn "%f, %f, %f" p.X p.Y p.Z )
     
