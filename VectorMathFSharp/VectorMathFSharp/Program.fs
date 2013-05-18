@@ -15,6 +15,7 @@ open System.Threading.Tasks
 open System.Timers
 open RayTracer
 open PhotonMapper
+open KDTree
 
 
 let xResolution = 256
@@ -104,8 +105,12 @@ let main argv =
 
 
     // test the photon mapper
-    let photonList = BuildListOfPhotons 50 scene l
-    printfn "Photon Count: %d" ( photonList |> List.length )
-    photonList |> List.iter ( fun (p,c) -> printfn "(%f, %f, %f )"  p.X p.Y p.Z )
+    let photonList = BuildPhotonMap scene l
+
+    // test find points
+    let target = Point3(-0.182862, -0.982818, -0.025117 )
+    let points = FindAllPointsNearPoint photonList target 1. 0
+
+    points |> List.iter ( fun (p, c)-> printfn "%f, %f, %f" p.X p.Y p.Z )
     
     0 // return an integer exit code

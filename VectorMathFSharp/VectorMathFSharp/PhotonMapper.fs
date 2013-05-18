@@ -21,7 +21,7 @@
         let ray = Ray( light.Position, (rayTarget - light.Position).Normalize() )
 
         // Build an illumination tree for this ray
-        let illuminationTree = BuildLightRayTree scene 5 ray
+        let illuminationTree = BuildLightRayTree scene 15 ray
 
         // Traverse the illumination tree and add each point to a list
         let rec BuildPointList  (tree: IlluminationTree) =
@@ -40,4 +40,5 @@
 
     let BuildPhotonMap (scene: Scene) (light: Light ) =
         let photonList = BuildListOfPhotons 1000 scene light
+        printfn "Photons: %d" ( List.length photonList )
         BuildKdTree photonList 0
