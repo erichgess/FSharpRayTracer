@@ -18,8 +18,8 @@ open PhotonMapper
 open KDTree
 
 
-let xResolution = 1024
-let yResolution = 1024
+let xResolution = 512
+let yResolution = 512
 let colors = Color.ByName
 let black = colors.["Black"]
 
@@ -82,7 +82,7 @@ let main argv =
         match illuminationTree with
         | NoIllumination -> black
         | IlluminationSource(hit, reflected, refracted ) ->
-                let photons = FindAllPointsNearPoint2 photonMap hit.Point 0.1 0
+                let photons = FindAllPointsNearPoint2 photonMap hit.Point 0.001 0
                 let i = float( photons.Length ) * 0.03 * Color( 0.2, 0.2, 0.2 )
 
                 let percentFromRefraction = 1. - hit.Material.Reflectivity

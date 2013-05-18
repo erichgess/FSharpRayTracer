@@ -35,9 +35,12 @@
 
     let BuildListOfPhotons (loops: int) (scene: Scene) (light: Light) =
         let photonList = ref []
-
+        let count = ref 0
+        let onePercentCompletion = loops / 100
         let _ = Parallel.For( 0, loops, new System.Action<int>( fun i ->
                                                                     let newPhotonList = CalculatePhotonMapForLight scene light
+                                                                    lock count ( fun () -> count := 1 + !count
+                                                                                           if !count % onePercentCompletion = 0 then printfn "%d" !count )
                                                                     lock photonList ( fun () -> photonList := newPhotonList @ !photonList ) ) )
         !photonList
 
