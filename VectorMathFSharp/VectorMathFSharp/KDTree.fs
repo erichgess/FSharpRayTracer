@@ -10,8 +10,11 @@
     let rec BuildKdTree ( photonList: (Point3*Color) list ) (depth:int)=
         if List.length photonList = 0 then
             Empty
+        else if List.length photonList = 1 then
+            let point,color = List.head photonList  // this gets the median data point 
+            Node( Empty, point, color, Empty )
         else 
-            let axis = depth % 3
+            let axis = (depth) % 3
         
             let length = List.length photonList
             let median = (List.length photonList) / 2
@@ -30,11 +33,17 @@
 
             Node ( BuildKdTree left (depth + 1), point, color, BuildKdTree right (depth + 1) )
 
+    let rec FlattenKdTree (tree: KDTreeNode<'a> ) =
+        match tree with
+        | Empty -> []
+        | Node( Empty, p, c, Empty ) -> [(p,c)]
+        | Node( left, p, c, right ) -> (p,c) :: FlattenKdTree left @ FlattenKdTree right
+
     let rec FindAllPointsNearPoint (tree: KDTreeNode<'a>) (target: Point3 ) (radiusSquared: float) (depth: int)=
         match tree with
         | Empty -> []
         | Node( left, point, data, right ) -> 
-            let axis = depth % 3
+            let axis = (depth) % 3
             let points =    if target.[axis] < point.[axis] then
                                 FindAllPointsNearPoint left target radiusSquared (depth+1)
                             else
@@ -50,16 +59,15 @@
         match tree with
         | Empty -> []
         | Node( left, point, data, right ) -> 
-            let axis = depth % 3
-            let points =    if System.Math.Abs ( target.[axis] - point.[axis] ) < radiusSquared then
-                                (FindAllPointsNearPoint left target radiusSquared (depth+1)) 
-                                @ (FindAllPointsNearPoint right target radiusSquared (depth+1))
+            let axis = (depth) % 3
+            let points =    if System.Math.Abs ( target.[axis] - point.[axis] ) > radiusSquared then
+                                (FindAllPointsNearPoint left target radiusSquared (depth+1)) @ (FindAllPointsNearPoint right target radiusSquared (depth+1))
                             else if target.[axis] < point.[axis] then
                                 FindAllPointsNearPoint left target radiusSquared (depth+1)
                             else
                                 FindAllPointsNearPoint right target radiusSquared (depth+1)
             let x = point - target
-            if x.LengthSquared() <= radiusSquared then
+            if x.Length() <= radiusSquared then
                 (point,data) :: points
             else
                 points
