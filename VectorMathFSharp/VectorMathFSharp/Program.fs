@@ -18,8 +18,8 @@ open PhotonMapper
 open KDTree
 
 
-let xResolution = 256
-let yResolution = 256
+let xResolution = 1024
+let yResolution = 1024
 let colors = Color.ByName
 let black = colors.["Black"]
 
@@ -75,9 +75,25 @@ let main argv =
     let shapes = List.append shapes (CreateRingOfSpheres 15)
     let scene = new Scene( lightSet, shapes )
    
+    printfn "Building Photon Map"
+    let photonMap = BuildPhotonMap scene l
+
+    let rec CalculatePhotonIllumination (illuminationTree: IlluminationTree) =
+        match illuminationTree with
+        | NoIllumination -> black
+        | IlluminationSource(hit, reflected, refracted ) ->
+                let photons = FindAllPointsNearPoint2 photonMap hit.Point 0.1 0
+                let i = float( photons.Length ) * 0.03 * Color( 0.2, 0.2, 0.2 )
+
+                let percentFromRefraction = 1. - hit.Material.Reflectivity
+                i
+                + hit.Illumination 
+                + hit.Material.Reflectivity * ( CalculateTotalIllumination reflected ) 
+                + percentFromRefraction * (CalculateTotalIllumination refracted )
+
     let ColorPixel u v =
         let ray = GetCameraRay u v
-        CalculateTotalIllumination (BuildLightRayTree scene 5 ray)
+        CalculatePhotonIllumination (BuildLightRayTree scene 5 ray)
 
     
     let ColorXRow v =
@@ -87,9 +103,13 @@ let main argv =
             pixels <- (u, v, shade) :: pixels
         pixels
 
+    printfn "Ray Tracing"
     let startTime = System.DateTime.Now
     let pixelColors = ref []
+    let rowCount = ref 0
     let _ = Parallel.For( 0, yResolution - 1, new System.Action<int>( fun y -> let row = ColorXRow y
+                                                                               lock rowCount ( fun () -> rowCount := !rowCount + 1
+                                                                                                         printfn "%d" !rowCount )
                                                                                lock pixelColors ( fun () -> pixelColors := row :: !pixelColors )  ) )
 
     let bmp = new System.Drawing.Bitmap( xResolution, yResolution )
@@ -102,19 +122,5 @@ let main argv =
     let endTime = System.DateTime.Now
     let duration = (endTime - startTime).TotalSeconds
     printfn "Parallel Duration: %f" duration
-
-
-    // test the photon mapper
-    let photonList = BuildPhotonMap scene l
-
-    // test find points
-    let target = Point3(-0.182862, -0.982818, -0.025117 )
-    let startTime = System.DateTime.Now
-    let points = FindAllPointsNearPoint photonList target 1. 0
-    let endTime = System.DateTime.Now
-    let duration = (endTime - startTime).TotalSeconds
-    printfn "KD Tree Search: %f" duration
-
-    points |> List.iter ( fun (p, c)-> printfn "%f, %f, %f" p.X p.Y p.Z )
     
     0 // return an integer exit code
