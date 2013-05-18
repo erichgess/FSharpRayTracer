@@ -7,6 +7,8 @@
     open Point
     open Ray
     open KDTree
+    open System.Threading
+    open System.Threading.Tasks
     
     let rand = new Random()
 
@@ -32,11 +34,12 @@
         BuildPointList illuminationTree
 
     let BuildListOfPhotons (loops: int) (scene: Scene) (light: Light) =
-        let mutable photonList = []
+        let photonList = ref []
 
-        for i = 1 to loops do
-            photonList <- photonList @ (CalculatePhotonMapForLight scene light )
-        photonList
+        let _ = Parallel.For( 1, 10000, new System.Action<int>( fun i ->
+                                                                    let newPhotonList = CalculatePhotonMapForLight scene light
+                                                                    lock photonList ( fun () -> photonList := newPhotonList @ !photonList ) ) )
+        !photonList
 
     let BuildPhotonMap (scene: Scene) (light: Light ) =
         let photonList = BuildListOfPhotons 10000 scene light
