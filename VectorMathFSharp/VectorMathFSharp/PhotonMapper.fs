@@ -36,7 +36,7 @@
     let BuildListOfPhotons (loops: int) (scene: Scene) (light: Light) =
         let photonList = ref []
 
-        let _ = Parallel.For( 1, 10000, new System.Action<int>( fun i ->
+        let _ = Parallel.For( 0, loops, new System.Action<int>( fun i ->
                                                                     let newPhotonList = CalculatePhotonMapForLight scene light
                                                                     lock photonList ( fun () -> photonList := newPhotonList @ !photonList ) ) )
         !photonList
