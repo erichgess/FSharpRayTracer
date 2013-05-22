@@ -17,7 +17,7 @@
     
     let CalculatePhotonMapForLight (scene: Scene) (light: Light ) =
         // pick a random point in the unit circle
-        let rayTarget = 4. * RandomPoint()
+        let rayTarget = RandomPoint()
 
         // Create a ray which passes through that point
         let ray = Ray( light.Position, (rayTarget - light.Position).Normalize() )
@@ -45,6 +45,6 @@
         !photonList
 
     let BuildPhotonMap (scene: Scene) (light: Light ) =
-        let photonList = BuildListOfPhotons 10000 scene light
+        let photonList = BuildListOfPhotons 500000 scene light
         printfn "Photons: %d" ( List.length photonList )
-        BuildKdTree photonList 0
+        BuildKdTree (photonList |> List.toArray ) 0
