@@ -75,7 +75,7 @@ let main argv =
    
     let ColorPixel u v =
         let ray = GetCameraRay u v
-        CalculateTotalIllumination (BuildLightRayTree scene 5 ray)
+        CalculateTotalIlluminationTail (fun x -> x) (BuildLightRayTree scene 5 ray)
 
     
     let ColorXRow v =

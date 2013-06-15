@@ -31,7 +31,16 @@
                                 + hit.Material.Reflectivity * ( CalculateTotalIllumination reflected ) 
                                 + percentFromRefraction * (CalculateTotalIllumination refracted )
 
-    
+    let rec CalculateTotalIlluminationTail cont t =
+        match t with
+        | NoIllumination -> cont black
+        | IlluminationSource(hit,reflected,refracted) -> 
+            let percentFromRefraction = 1. - hit.Material.Reflectivity
+            let percentFromReflection = hit.Material.Reflectivity
+            let fromLight = hit.Illumination
+
+            let f = fun (right:Color) -> CalculateTotalIlluminationTail ( fun left -> cont (fromLight + percentFromReflection * left + percentFromRefraction * right) ) reflected
+            CalculateTotalIlluminationTail f refracted    
 
     let FindIntersections (shapes: IShape list ) ( ray: Ray ) =
         shapes   |> List.map( fun s -> (s.Intersection ray) ) 
