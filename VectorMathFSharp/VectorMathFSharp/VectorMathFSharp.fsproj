@@ -41,13 +41,19 @@
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets')" />
   <ItemGroup>
     <None Include="App.config" />
+    <Compile Include="Color.fs" />
     <Compile Include="Matrix.fs" />
-    <Compile Include="Point.fs" />
     <Compile Include="Vector.fs" />
+    <Compile Include="Point.fs" />
+    <Compile Include="Light.fs" />
     <Compile Include="Ray.fs" />
+    <Compile Include="Material.fs" />
     <Compile Include="Shape.fs" />
     <Compile Include="Sphere.fs" />
     <Compile Include="Plane.fs" />
+    <Compile Include="Scene.fs" />
+    <Compile Include="BRDF.fs" />
+    <Compile Include="RayTracer.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>

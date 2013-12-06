@@ -4,22 +4,22 @@
     open Vector
     open Ray
     open Shape
+    open Material
     open System
-    open System.Drawing
 
     // The only thing which is needed is the transformation matrix.
     // The center of the sphere can be set with a translation matrix
     // The radius of the sphere can be set with a scaling matrix
-    type Sphere ( transformation: Matrix, color: Color ) =
-        let color = color
+    type Sphere ( transformation: Matrix, material: Material ) =
+        let material = material
         let transformation = transformation
         let invTransformation = transformation.Invert()
 
         interface IShape with
-            member this.Color = color
+            member this.Material = material
 
-            member this.Intersection ( r: Ray ) = 
-                let transformedRay = invTransformation * r
+            member this.Intersection ( ray: Ray ) = 
+                let transformedRay = invTransformation * ray
 
                 let a = transformedRay.Direction * transformedRay.Direction
                 let b = 2. * transformedRay.Origin * transformedRay.Direction
@@ -38,12 +38,17 @@
                     let t1 = c / q
 
                     let (tFirstHit, tSecondHit) = if t0 < t1 then (t0, t1) else (t1, t0)
+                    let tHit = if 0. <= tFirstHit then tFirstHit else tSecondHit
 
-                    if tSecondHit < 0. then
+                    if tHit < 0. then
                         None
                     else
-                        let pointOfIntersection = r.Origin + r.Direction * tFirstHit
-                        let normal = transformedRay.Origin + transformedRay.Direction * tFirstHit
+                        let pointOfIntersection = tHit * ray
+                        let normal = transformedRay.Origin + transformedRay.Direction * tHit
                         let normal = invTransformation.Transpose() * Vector3( normal.X, normal.Y, normal.Z)
+
+                        let isEntering = if tFirstHit > 0. then true else false
+                        let normal = if isEntering then normal else -normal
+
                         let shape = this :> IShape
-                        Some( tFirstHit, normal.Normalize(), shape.Color )
+                        Some( tHit, pointOfIntersection, normal.Normalize(), shape.Material, isEntering )
