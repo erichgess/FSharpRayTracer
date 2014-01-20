@@ -19,6 +19,8 @@ build/
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
 
+*.boltdata/
+
 *_i.c
 *_p.c
 *.ilk
