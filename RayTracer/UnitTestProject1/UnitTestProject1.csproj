@@ -54,7 +54,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\VectorMathFSharp\RayTracer.fsproj">
+    <ProjectReference Include="..\RayTracer\RayTracer.fsproj">
       <Project>{cbd4fb98-717f-477e-839e-026cfec0a21a}</Project>
       <Name>RayTracer</Name>
     </ProjectReference>
