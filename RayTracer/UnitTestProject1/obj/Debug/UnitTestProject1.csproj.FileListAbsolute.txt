@@ -1,0 +1,8 @@
+C:\Users\erich\Documents\Git\FSharpRayTracer\VectorMathFSharp\UnitTestProject1\bin\Debug\UnitTestProject1.dll
+C:\Users\erich\Documents\Git\FSharpRayTracer\VectorMathFSharp\UnitTestProject1\bin\Debug\UnitTestProject1.pdb
+C:\Users\erich\Documents\Git\FSharpRayTracer\VectorMathFSharp\UnitTestProject1\bin\Debug\VectorMathFSharp.exe
+C:\Users\erich\Documents\Git\FSharpRayTracer\VectorMathFSharp\UnitTestProject1\bin\Debug\VectorMathFSharp.pdb
+C:\Users\erich\Documents\Git\FSharpRayTracer\VectorMathFSharp\UnitTestProject1\bin\Debug\VectorMathFSharp.xml
+C:\Users\erich\Documents\Git\FSharpRayTracer\VectorMathFSharp\UnitTestProject1\obj\Debug\UnitTestProject1.csprojResolveAssemblyReference.cache
+C:\Users\erich\Documents\Git\FSharpRayTracer\VectorMathFSharp\UnitTestProject1\obj\Debug\UnitTestProject1.dll
+C:\Users\erich\Documents\Git\FSharpRayTracer\VectorMathFSharp\UnitTestProject1\obj\Debug\UnitTestProject1.pdb
