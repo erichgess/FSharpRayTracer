@@ -82,7 +82,7 @@ let main argv =
                                ( phong600Material colors.["Blue"] colors.["Blue"] 1. 0. )
                 ]
     let shapes = List.append shapes (CreateRingOfSpheres 15)
-    let scene = new Scene( lightSet, shapes )
+    let scene = { Lights = lightSet; Shapes = shapes }
    
     let ColorPixel u v =
         let ray = GetCameraRay u v
