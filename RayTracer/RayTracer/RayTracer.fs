@@ -8,11 +8,7 @@
     open Scene
     open Color
 
-    type Intersection( point: Point3, normal: Vector3, material: Material, illumination: Color ) =
-        member this.Point = point
-        member this.Normal = normal
-        member this.Material = material
-        member this.Illumination = illumination
+    type Intersection = { At: Point3; Normal: Vector3; Material: Material; Illumination: Color }
 
     type IlluminationTree =
         | NoIllumination
@@ -91,7 +87,7 @@
                                             | None -> NoIllumination
                                             | Some(r) -> BuildLightRayTree scene (numberOfReflections - 1) r
 
-            IlluminationSource( new Intersection( point, normal, material, lightingIllumination ), reflectedIlluminationTree, refractedIlluminationTree )
+            IlluminationSource( { At = point; Normal = normal; Material = material; Illumination = lightingIllumination }, reflectedIlluminationTree, refractedIlluminationTree )
 
             
             
