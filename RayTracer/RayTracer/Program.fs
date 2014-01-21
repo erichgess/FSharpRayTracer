@@ -57,8 +57,8 @@ let CreateRingOfSpheres numberOfSpheres =
     let distanceFromCenter = 1. / System.Math.Sin ( angleBetweenSpheres / 2.0 )
     let translate = Matrix.Translate( 0., distanceFromCenter, 0. )
 
-    List.init numberOfSpheres ( fun i -> new Sphere( Matrix.Scale( 0.3, 0.3, 0.3 ) * Matrix.RotateX( 120.0 ) * Matrix.RotateZ(angleBetweenSpheresInDegrees * float(i)) * translate, 
-                                                        cookTorranceMaterial colors.["Red"] colors.["CornflowerBlue"] 0.3 1.76 ) :> IShape )
+    List.init numberOfSpheres ( fun i -> Sphere ( Matrix.Scale( 0.3, 0.3, 0.3 ) * Matrix.RotateX( 120.0 ) * Matrix.RotateZ(angleBetweenSpheresInDegrees * float(i)) * translate) 
+                                                        (cookTorranceMaterial colors.["Red"] colors.["CornflowerBlue"] 0.3 1.76 ) )
 
 [<EntryPoint>]
 let main argv = 
@@ -72,14 +72,14 @@ let main argv =
     let phong400Material = basePhongMaterial 400.0
     let phong600Material = basePhongMaterial 600.0
 
-    let shapes = [   new Sphere( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 0., 0.0, 0.0 ), 
-                                cookTorranceMaterial (0.8 * colors.["CornflowerBlue"]) colors.["Red"] 0.2 1.01 ) :> IShape;
+    let shapes = [  Sphere ( Matrix.Scale( 1., 1., 1. ) * Matrix.Translate( 0., 0.0, 0.0 ) ) 
+                                ( cookTorranceMaterial (0.8 * colors.["CornflowerBlue"]) colors.["Red"] 0.2 1.01 );
 
-                    new Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 50., 50., 50. ), 
-                               phong400Material colors.["Green"] colors.["Green"] 0.2 0. ) :> IShape;
+                    Plane( Matrix.Translate( 0., -1., 0.) * Matrix.Scale( 50., 50., 50. )) 
+                               (phong400Material colors.["Green"] colors.["Green"] 0.2 0. );
 
-                    new Plane(  Matrix.RotateY(45.0) * Matrix.Translate( 0., 0., 5.) * Matrix.Scale( 2., 2., 2. ) * Matrix.RotateX( -90.0 ), 
-                                phong600Material colors.["Blue"] colors.["Blue"] 1. 0. ) :> IShape 
+                    Plane(  Matrix.RotateY(45.0) * Matrix.Translate( 0., 0., 5.) * Matrix.Scale( 2., 2., 2. ) * Matrix.RotateX( -90.0 )) 
+                               ( phong600Material colors.["Blue"] colors.["Blue"] 1. 0. )
                 ]
     let shapes = List.append shapes (CreateRingOfSpheres 15)
     let scene = new Scene( lightSet, shapes )

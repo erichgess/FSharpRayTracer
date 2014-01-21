@@ -38,14 +38,14 @@
             let f = fun (right:Color) -> CalculateTotalIlluminationTail ( fun left -> cont (fromLight + percentFromReflection * left + percentFromRefraction * right) ) reflected
             CalculateTotalIlluminationTail f refracted    
 
-    let FindIntersections (shapes: IShape list ) ( ray: Ray ) =
+    let FindIntersections (shapes: Shape list ) ( ray: Ray ) =
         shapes   |> List.map( fun s -> (s.Intersection ray) ) 
                 |> List.filter ( 
                     fun h -> match h with
                                 | None -> true
                                 | Some(time,_,_,_,_) -> 0. < time )
 
-    let FindNearestIntersection (shapes: IShape list) (ray:Ray) =
+    let FindNearestIntersection (shapes: Shape list) (ray:Ray) =
         FindIntersections shapes ray |> List.reduce (  
                                             fun acc intersection -> 
                                                 match acc with
@@ -56,7 +56,7 @@
                                                         -> intersection
                                                     | _ -> acc )
 
-    let CalculateLightIllumination (material: Material) (point: Point3) (normal: Vector3) (eyeDirection: Vector3) (shapes: IShape list) (light: Light) =
+    let CalculateLightIllumination (material: Material) (point: Point3) (normal: Vector3) (eyeDirection: Vector3) (shapes: Shape list) (light: Light) =
         let surfaceToLight = ( light.Position - point ).Normalize()
         let surfaceToLightRay = new Ray( point + surfaceToLight * 0.0001, surfaceToLight )
 

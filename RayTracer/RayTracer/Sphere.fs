@@ -10,45 +10,40 @@
     // The only thing which is needed is the transformation matrix.
     // The center of the sphere can be set with a translation matrix
     // The radius of the sphere can be set with a scaling matrix
-    type Sphere ( transformation: Matrix, material: Material ) =
-        let material = material
-        let transformation = transformation
-        let invTransformation = transformation.Invert()
+    
+    let Sphere (transformation:Matrix) (material:Material) =
+        {   Material = material; 
+            Intersection = (fun ray -> 
+                                let invTransformation = transformation.Invert()
+                                let transformedRay = invTransformation * ray
 
-        interface IShape with
-            member this.Material = material
+                                let a = transformedRay.Direction * transformedRay.Direction
+                                let b = 2. * transformedRay.Origin * transformedRay.Direction
+                                let c = transformedRay.Origin * transformedRay.Origin - 1.0
 
-            member this.Intersection ( ray: Ray ) = 
-                let transformedRay = invTransformation * ray
+                                let discrim = b*b - 4.*a*c
 
-                let a = transformedRay.Direction * transformedRay.Direction
-                let b = 2. * transformedRay.Origin * transformedRay.Direction
-                let c = transformedRay.Origin * transformedRay.Origin - 1.0
+                                if discrim < 0. then
+                                    None
+                                else
+                                    let discrimRoot = discrim |> Math.Sqrt
 
-                let discrim = b*b - 4.*a*c
+                                    let q = if b < 0. then (-b - discrimRoot )/2. else (-b + discrimRoot )/2.
 
-                if discrim < 0. then
-                    None
-                else
-                    let discrimRoot = discrim |> Math.Sqrt
+                                    let t0 = q / a
+                                    let t1 = c / q
 
-                    let q = if b < 0. then (-b - discrimRoot )/2. else (-b + discrimRoot )/2.
+                                    let (tFirstHit, tSecondHit) = if t0 < t1 then (t0, t1) else (t1, t0)
+                                    let tHit = if 0. <= tFirstHit then tFirstHit else tSecondHit
 
-                    let t0 = q / a
-                    let t1 = c / q
+                                    if tHit < 0. then
+                                        None
+                                    else
+                                        let pointOfIntersection = tHit * ray
+                                        let normal = transformedRay.Origin + transformedRay.Direction * tHit
+                                        let normal = invTransformation.Transpose() * Vector3( normal.X, normal.Y, normal.Z)
 
-                    let (tFirstHit, tSecondHit) = if t0 < t1 then (t0, t1) else (t1, t0)
-                    let tHit = if 0. <= tFirstHit then tFirstHit else tSecondHit
+                                        let isEntering = if tFirstHit > 0. then true else false
+                                        let normal = if isEntering then normal else -normal
 
-                    if tHit < 0. then
-                        None
-                    else
-                        let pointOfIntersection = tHit * ray
-                        let normal = transformedRay.Origin + transformedRay.Direction * tHit
-                        let normal = invTransformation.Transpose() * Vector3( normal.X, normal.Y, normal.Z)
-
-                        let isEntering = if tFirstHit > 0. then true else false
-                        let normal = if isEntering then normal else -normal
-
-                        let shape = this :> IShape
-                        Some( tHit, pointOfIntersection, normal.Normalize(), shape.Material, isEntering )
+                                        Some( tHit, pointOfIntersection, normal.Normalize(), material, isEntering ) )}
