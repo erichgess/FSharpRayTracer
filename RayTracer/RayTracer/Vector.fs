@@ -32,7 +32,7 @@
         static member (*) ( u: Vector3, v: Vector3 ) =
             u.X*v.X + u.Y*v.Y + u.Z*v.Z
 
-        static member ( >< ) (u: Vector3, v: Vector3 ) =
+        static member (><) (u: Vector3, v: Vector3 ) =
             Vector3(u.Y*v.Z - u.Z*v.Y, -(u.X*v.Z - u.Z*v.X), u.X*v.Y - u.Y*v.X )
 
         member this.LengthSquared () =

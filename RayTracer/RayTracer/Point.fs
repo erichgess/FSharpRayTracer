@@ -12,9 +12,6 @@
         static member (*) (a: float, p ) =
             { X = a * p.X; Y = a * p.Y; Z = a * p.Z}
 
-        static member (*) ( p, a: float ) =
-            a * p
-
         static member (-) ( p, q ) =
             Vector3( p.X - q.X, p.Y - q.Y, p.Z - q.Z)
 
