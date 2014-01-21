@@ -61,7 +61,7 @@
         let surfaceToLightRay = new Ray( point + surfaceToLight * 0.0001, surfaceToLight )
 
         match FindNearestIntersection shapes surfaceToLightRay with
-        | None -> material.CalculateLightIllumination eyeDirection surfaceToLight normal light
+        | None -> CalculateLightIllumination material eyeDirection surfaceToLight normal light
         | _ -> black
 
     let IlluminationFromAllLights (scene: Scene) (material: Material) (point: Point3) (normal: Vector3) (ray: Ray) =
@@ -79,11 +79,11 @@
             let CalculateLightIlluminationAtThisPoint = CalculateLightIllumination material point normal -ray.Direction
             let lightingIllumination = IlluminationFromAllLights scene material point normal ray
 
-            let reflectedRay = material.ReflectRay( time, ray, normal )
+            let reflectedRay = ReflectRay ( time, ray, normal )
             let reflectedIlluminationTree = BuildLightRayTree scene (numberOfReflections - 1) reflectedRay
 
             let (firstMediumIndex, secondMediumIndex) = if isEntering then (1.0, material.RefractionIndex) else (material.RefractionIndex, 1.0 )
-            let refractedIlluminationTree = match material.RefractRay( time, ray, normal, isEntering) with
+            let refractedIlluminationTree = match RefractRay material ( time, ray, normal, isEntering) with
                                             | None -> NoIllumination
                                             | Some(r) -> BuildLightRayTree scene (numberOfReflections - 1) r
 
