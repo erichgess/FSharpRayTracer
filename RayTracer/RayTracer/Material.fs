@@ -35,9 +35,3 @@
         match eyeDir.RefractThrough( normal, firstMediumIndex, secondMediumIndex ) with
         | None -> None
         | Some(refractedDirection)-> Some(new Ray( time * ray + refractedDirection * 0.0001, refractedDirection ))
-
-
-//    type MaterialFactory( diffuseFunction: Vector3 -> Vector3 -> Vector3 -> float, specularFunction: Vector3 -> Vector3 -> Vector3 -> float ) =
-
-//        member this.CreateMaterial (diffuseColor: Color, specularColor: Color, reflectivity: float, refractionIndex: float) =
-//            new Material( diffuseFunction, specularFunction, diffuseColor, specularColor, reflectivity, refractionIndex )
