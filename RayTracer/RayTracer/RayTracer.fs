@@ -87,7 +87,8 @@
                                             | None -> NoIllumination
                                             | Some(r) -> BuildLightRayTree scene (numberOfReflections - 1) r
 
-            IlluminationSource( { At = point; Normal = normal; Material = material; Illumination = lightingIllumination }, reflectedIlluminationTree, refractedIlluminationTree )
+            let intersection = { At = point; Normal = normal; Material = material; Illumination = lightingIllumination }
+            IlluminationSource( intersection, reflectedIlluminationTree, refractedIlluminationTree )
 
             
             
