@@ -3,17 +3,14 @@
     open Vector
     open Matrix
 
-    type Point3 ( x: float, y: float, z: float ) =
-        member this.X = x
-        member this.Y = y
-        member this.Z = z
-
+    type Point3 = 
+        { X: float; Y: float; Z: float }
         static member init f =
             let a = Array.init 4 f
-            Point3( a.[0], a.[1], a.[2] )
+            { X = a.[0]; Y = a.[1]; Z = a.[2] }
 
         static member (*) (a: float, p: Point3 ) =
-            Point3( a * p.X, a * p.Y, a * p.Z)
+            { X = a * p.X; Y = a * p.Y; Z = a * p.Z}
 
         static member (*) ( p: Point3, a: float ) =
             a * p
@@ -25,7 +22,7 @@
             p.X*v.X + p.Y*v.Y + p.Z*v.Z
 
         static member (+) ( p: Point3, v: Vector3 ) =
-            Point3( p.X + v.X, p.Y + v.Y, p.Z + v.Z )
+            { X = p.X + v.X; Y = p.Y + v.Y; Z = p.Z + v.Z }
 
         // The 4th row/col of the matrix is added to the point, because that portion
         // of the matrix represents translations.

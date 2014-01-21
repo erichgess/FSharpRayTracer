@@ -12,7 +12,7 @@
         {   Material = material; 
             Intersection = (fun ray -> 
                                 let inverseTransformation = transformation.Invert()
-                                let plane = transformation * Point3( 0., 0., 0. )
+                                let plane = transformation * { X = 0.; Y = 0.; Z = 0. }
                                 let normal = (inverseTransformation.Transpose() * Vector3( 0., 1., 0. )).Normalize()
 
                                 let transformedRay = inverseTransformation * ray

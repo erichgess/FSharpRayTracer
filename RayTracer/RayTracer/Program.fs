@@ -49,7 +49,7 @@ let GetCameraRay (u: int) (v: int ) =
     let xPos = float(xmin) + float(u) * xDelta
     let yPos = float(ymax) - float(v) * yDelta
     let viewPoint = Vector3( xPos, yPos, 0. )
-    Ray( Point3( center.X, center.Y, center.Z ), (viewPoint - center).Normalize() )
+    Ray( { X = center.X; Y = center.Y; Z = center.Z }, (viewPoint - center).Normalize() )
 
 let CreateRingOfSpheres numberOfSpheres =
     let angleBetweenSpheres = 2. * System.Math.PI / float(numberOfSpheres)
@@ -63,8 +63,8 @@ let CreateRingOfSpheres numberOfSpheres =
 [<EntryPoint>]
 let main argv = 
     
-    let l = { Position = Point3( -4., 8., -3. ); Color = colors.["White"] }
-    let l2 ={ Position = Point3( 1., 2., -7. ); Color = colors.["Aquamarine"] }
+    let l = { Position = { X = -4.; Y = 8.; Z = -3. }; Color = colors.["White"] }
+    let l2 ={ Position = { X = 1.; Y = 2.; Z = -7. }; Color = colors.["Aquamarine"] }
     let lightSet = [ l; l2 ]
 
     let phong20Material = basePhongMaterial 20.0
