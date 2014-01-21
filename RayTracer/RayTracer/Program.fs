@@ -63,8 +63,8 @@ let CreateRingOfSpheres numberOfSpheres =
 [<EntryPoint>]
 let main argv = 
     
-    let l = new Light(Point3( -4., 8., -3. ), colors.["White"] )
-    let l2 = new Light(Point3( 1., 2., -7. ), colors.["Aquamarine"] )
+    let l = { Position = Point3( -4., 8., -3. ); Color = colors.["White"] }
+    let l2 ={ Position = Point3( 1., 2., -7. ); Color = colors.["Aquamarine"] }
     let lightSet = [ l; l2 ]
 
     let phong20Material = basePhongMaterial 20.0

@@ -56,7 +56,7 @@
                                                         -> intersection
                                                     | _ -> acc )
 
-    let CalculateLightIllumination material (point: Point3) (normal: Vector3) (eyeDirection: Vector3) shapes (light: Light) =
+    let CalculateLightIllumination material (point: Point3) (normal: Vector3) (eyeDirection: Vector3) shapes light =
         let surfaceToLight = ( light.Position - point ).Normalize()
         let surfaceToLightRay = new Ray( point + surfaceToLight * 0.0001, surfaceToLight )
 

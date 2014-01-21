@@ -12,7 +12,7 @@
                         Reflectivity: float; 
                         RefractionIndex: float }
 
-    let CalculateLightIllumination material (eyeDirection: Vector3) (lightDirection: Vector3) (normal: Vector3) (light: Light) =
+    let CalculateLightIllumination material (eyeDirection: Vector3) (lightDirection: Vector3) (normal: Vector3) light =
         let diffuse = material.DiffuseFunction eyeDirection lightDirection normal
         let diffuseColor = diffuse * light.Color * material.DiffuseColor
 
