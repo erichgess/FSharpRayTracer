@@ -11,10 +11,8 @@
             member this.Return(x) =
                 x
 
-    type Color( r: float, g: float, b: float ) =
-        member this.R = r
-        member this.G = g
-        member this.B = b
+    type Color =
+        { R: float; G: float; B: float }
 
         static member ByName =
                 let ctype = Drawing.Color.Black.GetType()
@@ -31,39 +29,39 @@
                 let r = int(255. * f)
                 if r < 0 then 0 else if r > 255 then 255 else r
 
-            System.Drawing.Color.FromArgb( 255,byteFromFloat r, byteFromFloat g, byteFromFloat b )
+            System.Drawing.Color.FromArgb( 255,byteFromFloat this.R, byteFromFloat this.G, byteFromFloat this.B )
 
         static member init (c:System.Drawing.Color) =
-            Color( float(c.R)/255.0, float(c.G)/255.0, float(c.B)/255.0 )
+            { R = float(c.R)/255.0; G = float(c.G)/255.0; B = float(c.B)/255.0 }
 
-        static member (*) ( c: Color, d: Color ) =
+        static member (*) ( c, d ) =
             let calculateColor = new BoundedMath()
             calculateColor{
                let! r = c.R * d.R
                let! g = c.G * d.G
                let! b = c.B * d.B
-               return Color( r, g, b )
+               return { R = r; G = g; B = b }
             }
 
-        static member (+) ( c: Color, d: Color ) =
+        static member (+) ( c, d ) =
             let calculateColor = new BoundedMath()
             calculateColor{
                let! r = c.R + d.R
                let! g = c.G + d.G
                let! b = c.B + d.B
-               return Color( r, g, b )
+               return { R = r; G = g; B = b }
             }
 
-        static member (+) ( c: Color, d: System.Drawing.Color ) =
+        static member (+) ( c, d: System.Drawing.Color ) =
             c + Color.init d
 
-        static member (*) ( a: float, c: Color ) =
+        static member (*) ( a: float, c ) =
             let calculateColor = new BoundedMath()
             calculateColor{
                let! r = a * c.R
                let! g = a * c.G
                let! b = a * c.B
-               return Color( r, g, b )
+               return { R = r; G = g; B = b }
             }
 
         static member (*) ( c: Color, a: float ) =
